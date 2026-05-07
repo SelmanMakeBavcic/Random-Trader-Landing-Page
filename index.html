@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Primary SEO -->
+  <title>Self-hosted AI Trading Journal &amp; Psychology Coach — Random Trader</title>
+  <meta name="description" content="Random Trader: a self-hosted trading journal with AI psychology coach and tilt detection. Pay once, host yourself, bring your own AI key." />
+  <meta name="keywords" content="self-hosted trading journal, AI trading coach, trading psychology, tilt detection, trade journal, trading mentor, one-time payment trading software" />
+  <meta name="author" content="Random Trader" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+
+  <!-- Canonical — UPDATE the domain after deploy (see TODO_AFTER.md) -->
+  <link rel="canonical" href="https://random-trader.com/" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://random-trader.com/" />
+  <meta property="og:site_name" content="Random Trader" />
+  <meta property="og:title" content="Random Trader — Self-hosted AI Trading Coach &amp; Journal" />
+  <meta property="og:description" content="A psychology-first trading journal with tilt detection and AI mentor. Self-hosted, one-time payment, your data stays on your machine." />
+  <meta property="og:image" content="https://random-trader.com/assets/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Random Trader — self-hosted AI trading journal" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://random-trader.com/" />
+  <meta name="twitter:title" content="Random Trader — Self-hosted AI Trading Coach" />
+  <meta name="twitter:description" content="Trading journal + tilt detection + AI mentor. Self-hosted. Pay once. Your data, your machine." />
+  <meta name="twitter:image" content="https://random-trader.com/assets/og-image.png" />
+
+  <!-- Icons -->
+  <link rel="icon" href="/assets/favicon.ico" />
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+
+  <!-- Fonts & styles -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" />
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Plausible Analytics — privacy-first, no cookie banner needed -->
+  <script async src="https://plausible.io/js/pa-MA-MyJr1W8-BZJV0IJBVS.js"></script>
+  <script>
+    window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+    plausible.init()
+  </script>
+
+  <!-- Structured data: SoftwareApplication -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Random Trader",
+    "description": "Self-hosted AI trading coach and psychology-first journal with tilt detection. One-time payment, your data stays on your machine.",
+    "applicationCategory": "FinanceApplication",
+    "applicationSubCategory": "TradingJournal",
+    "operatingSystem": "macOS, Windows, Linux",
+    "url": "https://random-trader.com/",
+    "image": "https://random-trader.com/assets/og-image.png",
+    "offers": {
+      "@type": "Offer",
+      "price": "49",
+      "priceCurrency": "USD",
+      "availability": "https://schema.org/PreOrder",
+      "url": "https://random-trader.com/#pricing"
+    },
+    "featureList": [
+      "AI trading coach with psychology-first mentoring",
+      "Tilt detection and daily loss limit guardrails",
+      "Trade journal with emotion tracking",
+      "Performance metrics: drawdown, win rate, equity curve",
+      "PnL calendar and weekly bar charts",
+      "Multi-account management",
+      "Tradovate CSV import — standard CSV supported for other brokers",
+      "Self-hosted via Docker or local install",
+      "Bring your own AI key (Groq, OpenAI, Anthropic, xAI)"
+    ]
+  }
+  </script>
+
+  <!-- Structured data: FAQPage -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What does 'self-hosted' mean?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "You run Random Trader on your own machine or VPS. Your trades and journal entries never touch our servers. We ship a Docker Compose stack — one command to start, your data stays local."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do I need a subscription for the AI coach?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. Bring your own API key from Groq, OpenAI, Anthropic, or xAI. Groq has a free tier that covers daily coaching for most users. You pay the AI provider directly at their rate — no markup."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What happens after I pay?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "You'll get an email from Lemon Squeezy with a license key and a download link. Enter the license key on first launch to activate. The download includes a setup guide — most users are running in under 10 minutes. If you hit a snag, reply to the email and support will get back to you. The license is personal — one purchase, one user."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is this a subscription?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. Pay once, own it forever. All future updates are included — no upgrade charges, no annual renewals."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What are the minimum requirements to run Random Trader locally?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Any modern laptop or desktop from the last 5 years works fine. You need Node.js 20+ and Docker Desktop for the full self-hosted stack. 8GB RAM is comfortable — 4GB works but feels tight with Docker running. macOS, Windows, and Linux are all supported."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What brokers are supported for import?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Tradovate is fully supported with direct CSV import. All other platforms that offer CSV export (most do) work with the standard import. Additional native integrations are planned for future updates."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I run this on a VPS?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Any Linux VPS with 2GB RAM or more works. A Hetzner CX22 (around €4–5/month) or a DigitalOcean $6/month Droplet is more than enough. You get the benefit of accessing your dashboard from any device and keeping it running 24/7 without leaving your laptop on."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What if I want a refund?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "If you can't get it running within 14 days and we can't help you fix it, full refund, no questions asked."
+        }
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════ NAV ═══════════════════════════════════ -->
+  <header class="nav" id="nav">
+    <div class="nav__inner container">
+      <a href="#" class="nav__logo">Random Trader</a>
+
+      <nav class="nav__links" id="navLinks" aria-label="Main navigation">
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#faq">FAQ</a>
+        <button class="btn btn--sm" data-waitlist>Join waitlist</button>
+      </nav>
+
+      <button class="nav__burger" id="navBurger" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ══════════════════════════════ HERO ══════════════════════════════════ -->
+    <section class="hero" id="hero">
+      <div class="container hero__inner">
+        <p class="hero__eyebrow fade-up delay-0">Self-hosted · One-time payment</p>
+        <h1 class="hero__headline fade-up delay-1">
+          Your trades stay on<br />your machine.<br />Your coach stays<br class="hero__br-mobile" /> in your corner.
+        </h1>
+        <p class="hero__sub fade-up delay-2">
+          A psychology-first trading journal and AI mentor —<br />
+          self-hosted, one-time payment, yours forever.
+        </p>
+        <div class="hero__ctas fade-up delay-3">
+          <button class="btn btn--primary btn--lg" data-waitlist>
+            Join the waitlist — <span class="price-early">$<span data-early-price>49</span></span>
+          </button>
+          <a href="#tour" class="btn btn--ghost btn--lg">See how it works</a>
+        </div>
+        <p class="hero__trust fade-up delay-4">
+          No subscription &nbsp;·&nbsp; No cloud &nbsp;·&nbsp; Bring your own AI key
+        </p>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════ PROBLEMS ════════════════════════════════ -->
+    <section class="problems" id="features">
+      <div class="container">
+        <div class="problems__grid">
+
+          <div class="problem-card">
+            <div class="problem-card__icon">01</div>
+            <h3 class="problem-card__heading">You know your setup.<br />Emotions override it.</h3>
+            <p class="problem-card__body">Most losses come from breaking your own rules — revenge trades, oversizing after a loss, ignoring your stop. Knowledge isn't the problem. Execution is.</p>
+          </div>
+
+          <div class="problem-card">
+            <div class="problem-card__icon">02</div>
+            <h3 class="problem-card__heading">Your journal is a graveyard of CSVs.</h3>
+            <p class="problem-card__body">You import trades, stare at PnL, and still don't know WHY you're losing. Without emotion context, data is just noise.</p>
+          </div>
+
+          <div class="problem-card">
+            <div class="problem-card__icon">03</div>
+            <h3 class="problem-card__heading">Your data lives on someone else's server.</h3>
+            <p class="problem-card__body">SaaS journals charge monthly and hold your trading history hostage. Cancel and lose everything you built.</p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════ PRODUCT TOUR ═══════════════════════════════ -->
+    <section class="tour" id="tour">
+      <div class="container">
+        <h2 class="section-heading">See it in action</h2>
+        <p class="section-sub">Every screen you need. Nothing you don't.</p>
+
+        <div class="tour__tabs" role="tablist" aria-label="Product screenshots">
+          <button class="tour__tab tour__tab--active" role="tab" aria-selected="true" aria-controls="panel-dashboard" data-panel="dashboard">Dashboard</button>
+          <button class="tour__tab" role="tab" aria-selected="false" aria-controls="panel-coach" data-panel="coach">AI Mentor</button>
+          <button class="tour__tab" role="tab" aria-selected="false" aria-controls="panel-tilt" data-panel="tilt">Tilt Meter</button>
+          <button class="tour__tab" role="tab" aria-selected="false" aria-controls="panel-metrics" data-panel="metrics">Metrics</button>
+          <button class="tour__tab" role="tab" aria-selected="false" aria-controls="panel-journal" data-panel="journal">Journal</button>
+        </div>
+
+        <div class="tour__panels">
+
+          <!-- Dashboard -->
+          <div class="tour__panel tour__panel--active" id="panel-dashboard" role="tabpanel">
+            <div class="screenshot-wrapper">
+              <img src="./assets/screenshots/dashboard.png" alt="Random Trader dashboard showing KPI cards, equity curve, and trades table" loading="lazy" />
+            </div>
+            <div class="screenshot-wrapper screenshot-wrapper--detail">
+              <img src="./assets/screenshots/dashboard-kpi.png" alt="KPI strip detail view" loading="lazy" />
+            </div>
+            <p class="tour__caption">Your PnL at a glance — equity curve, KPI cards, weekly bars, and every trade in one view.</p>
+          </div>
+
+          <!-- AI Mentor -->
+          <div class="tour__panel" id="panel-coach" role="tabpanel" hidden>
+            <div class="carousel" data-labels="Calm — 2/10,Elevated — 4/10,Critical — 9/10">
+              <div class="carousel__viewport">
+                <div class="carousel__track">
+                  <div class="carousel__slide">
+                    <img src="./assets/screenshots/coach-calm.png" alt="AI Mentor in calm state, tilt 2/10" loading="lazy" />
+                  </div>
+                  <div class="carousel__slide">
+                    <img src="./assets/screenshots/coach-elevated.png" alt="AI Mentor in elevated state, tilt 4/10" loading="lazy" />
+                  </div>
+                  <div class="carousel__slide">
+                    <img src="./assets/screenshots/coach-critical.png" alt="AI Mentor in critical state, tilt 9/10" loading="lazy" />
+                  </div>
+                </div>
+                <button class="carousel__btn carousel__btn--prev" aria-label="Previous slide">&#8249;</button>
+                <button class="carousel__btn carousel__btn--next" aria-label="Next slide">&#8250;</button>
+              </div>
+              <div class="carousel__footer">
+                <p class="carousel__label">Calm — 2/10</p>
+                <div class="carousel__dots">
+                  <button class="carousel__dot carousel__dot--active" aria-label="Slide 1"></button>
+                  <button class="carousel__dot" aria-label="Slide 2"></button>
+                  <button class="carousel__dot" aria-label="Slide 3"></button>
+                </div>
+              </div>
+            </div>
+            <p class="tour__caption">The mentor adjusts to your state. It asks questions when you're calm, slows you down when you're elevated, and closes the session when you hit critical tilt.</p>
+          </div>
+
+          <!-- Tilt Meter -->
+          <div class="tour__panel" id="panel-tilt" role="tabpanel" hidden>
+            <div class="carousel" data-labels="Elevated — 5/10,Critical — 9/10">
+              <div class="carousel__viewport">
+                <div class="carousel__track">
+                  <div class="carousel__slide">
+                    <img src="./assets/screenshots/tilt-elevated.png" alt="Tilt meter at elevated level, 5/10 — slow down warning" loading="lazy" />
+                  </div>
+                  <div class="carousel__slide">
+                    <img src="./assets/screenshots/tilt-critical.png" alt="Tilt meter at critical level, 9/10 — session paused" loading="lazy" />
+                  </div>
+                </div>
+                <button class="carousel__btn carousel__btn--prev" aria-label="Previous slide">&#8249;</button>
+                <button class="carousel__btn carousel__btn--next" aria-label="Next slide">&#8250;</button>
+              </div>
+              <div class="carousel__footer">
+                <p class="carousel__label">Elevated — 5/10</p>
+                <div class="carousel__dots">
+                  <button class="carousel__dot carousel__dot--active" aria-label="Slide 1"></button>
+                  <button class="carousel__dot" aria-label="Slide 2"></button>
+                </div>
+              </div>
+            </div>
+            <p class="tour__caption">Every session starts at zero. The score moves based on your trades, pace, and emotional signals — not what you type. The mentor escalates with you and pauses the session before damage compounds.</p>
+          </div>
+
+          <!-- Metrics -->
+          <div class="tour__panel" id="panel-metrics" role="tabpanel" hidden>
+            <div class="screenshot-wrapper">
+              <img src="./assets/screenshots/calendar.png" alt="PnL calendar showing every trading day" loading="lazy" />
+            </div>
+            <p class="tour__caption">PnL calendar — every trading day at a glance. Know which days, weeks, and setups are actually working.</p>
+          </div>
+
+          <!-- Journal -->
+          <div class="tour__panel" id="panel-journal" role="tabpanel" hidden>
+            <div class="carousel">
+              <div class="carousel__viewport">
+                <div class="carousel__track">
+                  <div class="carousel__slide">
+                    <img src="./assets/screenshots/journal-list.png" alt="Journal trade list" loading="lazy" />
+                  </div>
+                  <div class="carousel__slide">
+                    <img src="./assets/screenshots/journal-drawer.png" alt="Journal entry drawer with emotion and setup fields" loading="lazy" />
+                  </div>
+                </div>
+                <button class="carousel__btn carousel__btn--prev" aria-label="Previous slide">&#8249;</button>
+                <button class="carousel__btn carousel__btn--next" aria-label="Next slide">&#8250;</button>
+              </div>
+              <div class="carousel__footer">
+                <div class="carousel__dots">
+                  <button class="carousel__dot carousel__dot--active" aria-label="Slide 1"></button>
+                  <button class="carousel__dot" aria-label="Slide 2"></button>
+                </div>
+              </div>
+            </div>
+            <p class="tour__caption">Every trade gets a journal entry — setup quality, emotion at entry, whether you honored the stop. Write it down while it's fresh.</p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════ HOW IT WORKS ════════════════════════════════ -->
+    <section class="how" id="how">
+      <div class="container">
+        <h2 class="section-heading">How it works</h2>
+        <p class="section-sub">Running in under five minutes.</p>
+
+        <div class="how__steps">
+
+          <div class="how__step">
+            <div class="how__step-num">1</div>
+            <div>
+              <h3 class="how__step-heading">Import your trades</h3>
+              <p class="how__step-body">Currently supports Tradovate CSV export. Additional brokers coming in future updates. All other platforms can export a standard CSV — Random Trader imports it.</p>
+            </div>
+          </div>
+
+          <div class="how__connector" aria-hidden="true"></div>
+
+          <div class="how__step">
+            <div class="how__step-num">2</div>
+            <div>
+              <h3 class="how__step-heading">Journal while it's fresh</h3>
+              <p class="how__step-body">Log emotion, setup quality, and what went well. The coach uses this to understand your patterns and improve your process.</p>
+            </div>
+          </div>
+
+          <div class="how__connector" aria-hidden="true"></div>
+
+          <div class="how__step">
+            <div class="how__step-num">3</div>
+            <div>
+              <h3 class="how__step-heading">Coach reviews with you</h3>
+              <p class="how__step-body">Your AI mentor tracks tilt, enforces your daily loss limit, and helps you build process — not just chase PnL.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════ PRICING ═════════════════════════════════ -->
+    <section class="pricing" id="pricing">
+      <div class="container">
+        <h2 class="section-heading">Simple pricing</h2>
+        <p class="section-sub">No recurring fees. No lock-in.</p>
+
+        <div class="pricing__card">
+          <div class="pricing__badge">Founding member</div>
+
+          <div class="pricing__amount">
+            <span class="pricing__price-early">$<span data-early-price>49</span></span>
+            <span class="pricing__price-full">$<span data-full-price>99</span></span>
+          </div>
+          <p class="pricing__once">One-time payment. All future updates included.</p>
+
+          <ul class="pricing__features" aria-label="What's included">
+            <li><span class="check" aria-hidden="true">✓</span> AI trading coach with psychology-first mentoring</li>
+            <li><span class="check" aria-hidden="true">✓</span> Tilt detection &amp; daily loss limit guardrails</li>
+            <li><span class="check" aria-hidden="true">✓</span> Full trade journal with emotion tracking</li>
+            <li><span class="check" aria-hidden="true">✓</span> Performance metrics — drawdown, win rate, equity curve</li>
+            <li><span class="check" aria-hidden="true">✓</span> PnL calendar, weekly bar charts, per-symbol stats</li>
+            <li><span class="check" aria-hidden="true">✓</span> Multi-account management</li>
+            <li><span class="check" aria-hidden="true">✓</span> Tradovate CSV import — standard CSV supported for other brokers</li>
+            <li><span class="check" aria-hidden="true">✓</span> Pre-trade session modal</li>
+            <li><span class="check" aria-hidden="true">✓</span> Bring your own AI key — Groq, OpenAI, Anthropic, xAI</li>
+            <li><span class="check" aria-hidden="true">✓</span> Self-hosted — Docker or run locally</li>
+            <li><span class="check" aria-hidden="true">✓</span> All future updates included</li>
+            <li><span class="check" aria-hidden="true">✓</span> Source code included — you own it</li>
+          </ul>
+
+          <button class="btn btn--primary btn--lg btn--full" data-waitlist>
+            Join the waitlist — $<span data-early-price>49</span>
+          </button>
+          <p class="pricing__footnote">
+            Price goes to $<span data-full-price>99</span> at launch &nbsp;·&nbsp; 14-day setup guarantee or full refund
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════ COMPARISON TABLE ═════════════════════════════ -->
+    <section class="compare">
+      <div class="container">
+        <h2 class="section-heading">vs. SaaS journals</h2>
+        <p class="section-sub">Why pay monthly for something you can own?</p>
+
+        <div class="compare__wrap">
+          <table class="compare__table" aria-label="Feature comparison">
+            <thead>
+              <tr>
+                <th scope="col"></th>
+                <th scope="col" class="compare__col--saas">SaaS journals</th>
+                <th scope="col" class="compare__col--rt">Random Trader</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Pricing</td>
+                <td class="compare__bad">~$30–50 / month</td>
+                <td class="compare__good">$<span data-early-price>49</span> once</td>
+              </tr>
+              <tr>
+                <td>Your data</td>
+                <td class="compare__bad">On their servers</td>
+                <td class="compare__good">On your machine</td>
+              </tr>
+              <tr>
+                <td>AI coach</td>
+                <td class="compare__bad">Generic or none</td>
+                <td class="compare__good">Psychology-first + tilt engine</td>
+              </tr>
+              <tr>
+                <td>AI API key</td>
+                <td class="compare__bad">Baked in (markup)</td>
+                <td class="compare__good">Bring your own, direct rate</td>
+              </tr>
+              <tr>
+                <td>Future updates</td>
+                <td class="compare__bad">Pay forever</td>
+                <td class="compare__good">Included</td>
+              </tr>
+              <tr>
+                <td>Source code</td>
+                <td class="compare__bad">Closed</td>
+                <td class="compare__good">You own it</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════ FAQ ════════════════════════════════════ -->
+    <section class="faq" id="faq">
+      <div class="container faq__inner">
+        <h2 class="section-heading">Questions</h2>
+
+        <div class="faq__list">
+
+          <div class="faq__item">
+            <h3 class="faq__q-h"><button class="faq__question" aria-expanded="false">
+              What does 'self-hosted' mean?
+              <span class="faq__icon" aria-hidden="true"></span>
+            </button></h3>
+            <div class="faq__answer">
+              <p>You run Random Trader on your own machine or VPS. Your trades and journal entries never touch our servers. We ship a Docker Compose stack — one command to start, your data stays local.</p>
+            </div>
+          </div>
+
+          <div class="faq__item">
+            <h3 class="faq__q-h"><button class="faq__question" aria-expanded="false">
+              Do I need a subscription for the AI coach?
+              <span class="faq__icon" aria-hidden="true"></span>
+            </button></h3>
+            <div class="faq__answer">
+              <p>No. Bring your own API key from Groq, OpenAI, Anthropic, or xAI. Groq has a free tier that covers daily coaching for most users. You pay the AI provider directly at their rate — no markup.</p>
+            </div>
+          </div>
+
+          <div class="faq__item">
+            <h3 class="faq__q-h"><button class="faq__question" aria-expanded="false">
+              What happens after I pay?
+              <span class="faq__icon" aria-hidden="true"></span>
+            </button></h3>
+            <div class="faq__answer">
+              <p>You'll get an email from Lemon Squeezy with a license key and a download link. Enter the license key on first launch to activate. The download includes a setup guide — most users are running in under 10 minutes. If you hit a snag, reply to the email and support will get back to you.</p>
+              <p style="margin-top:10px;">The license is personal — one purchase, one user. The code is yours to run and modify for your own use.</p>
+            </div>
+          </div>
+
+          <div class="faq__item">
+            <h3 class="faq__q-h"><button class="faq__question" aria-expanded="false">
+              Is this a subscription?
+              <span class="faq__icon" aria-hidden="true"></span>
+            </button></h3>
+            <div class="faq__answer">
+              <p>No. Pay once, own it forever. All future updates are included — no upgrade charges, no annual renewals.</p>
+            </div>
+          </div>
+
+          <div class="faq__item">
+            <h3 class="faq__q-h"><button class="faq__question" aria-expanded="false">
+              What brokers are supported?
+              <span class="faq__icon" aria-hidden="true"></span>
+            </button></h3>
+            <div class="faq__answer">
+              <p>Tradovate is fully supported with direct CSV import. All other platforms that offer CSV export (most do) work with the standard import. Additional native integrations are planned for future updates.</p>
+            </div>
+          </div>
+
+          <div class="faq__item">
+            <h3 class="faq__q-h"><button class="faq__question" aria-expanded="false">
+              What are the minimum requirements to run Random Trader locally?
+              <span class="faq__icon" aria-hidden="true"></span>
+            </button></h3>
+            <div class="faq__answer">
+              <p>Any modern laptop or desktop from the last 5 years works fine. You need Node.js 20+ and Docker Desktop for the full self-hosted stack. 8GB RAM is comfortable — 4GB works but feels tight with Docker running. macOS, Windows, and Linux are all supported. If you can run VS Code and a browser at the same time, you can run Random Trader.</p>
+            </div>
+          </div>
+
+          <div class="faq__item">
+            <h3 class="faq__q-h"><button class="faq__question" aria-expanded="false">
+              Can I run this on a VPS?
+              <span class="faq__icon" aria-hidden="true"></span>
+            </button></h3>
+            <div class="faq__answer">
+              <p>Yes. Any Linux VPS with 2GB RAM or more works. A Hetzner CX22 (around €4–5/month) or a DigitalOcean $6/month Droplet is more than enough. You get the benefit of accessing your dashboard from any device and keeping it running 24/7 without leaving your laptop on. Setup takes the same amount of time as local — about 10 minutes with Docker.</p>
+            </div>
+          </div>
+
+          <div class="faq__item">
+            <h3 class="faq__q-h"><button class="faq__question" aria-expanded="false">
+              What if I want a refund?
+              <span class="faq__icon" aria-hidden="true"></span>
+            </button></h3>
+            <div class="faq__answer">
+              <p>If you can't get it running within 14 days and we can't help you fix it, full refund, no questions asked.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════ FINAL CTA ══════════════════════════════════ -->
+    <section class="cta-final">
+      <div class="container cta-final__inner">
+        <h2 class="cta-final__heading">Trade with discipline.<br />Own your process.</h2>
+        <button class="btn btn--primary btn--lg" data-waitlist>
+          Join the waitlist — $<span data-early-price>49</span>
+        </button>
+        <p class="cta-final__sub">
+          Price goes to $<span data-full-price>99</span> at launch &nbsp;·&nbsp; 14-day setup guarantee
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ════════════════════════════ FOOTER ══════════════════════════════════ -->
+  <footer class="footer">
+    <div class="container footer__inner">
+      <div class="footer__brand">
+        <span class="footer__logo">Random Trader</span>
+        <span class="footer__tagline">One calm trade at a time.</span>
+      </div>
+      <p class="footer__copy">&copy; 2025 Random Trader. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

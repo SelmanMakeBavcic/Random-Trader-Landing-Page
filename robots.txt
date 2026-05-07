@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Block utility files from being indexed
+Disallow: /CLAUDE.md
+Disallow: /README_HOSTINGER.md
+Disallow: /TODO_AFTER.md
+
+Sitemap: https://random-trader.com/sitemap.xml
