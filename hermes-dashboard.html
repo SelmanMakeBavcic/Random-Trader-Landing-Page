@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hermes — Agent Control</title>
+  <!-- UI UX Pro Max Skill Direction: Dark Mode OLED + Financial Dashboard -->
+  <!-- Typography: Fira Code (brand/mono/headings) + Fira Sans (body/UI) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg: '#020617', surface: '#0F172A', s2: '#1E293B',
+            bd: '#334155', primary: '#3B82F6', ok: '#22C55E',
+            warn: '#F59E0B', err: '#EF4444', indigo: '#6366F1', pur: '#A855F7'
+          },
+          fontFamily: { sans: ['Fira Sans','sans-serif'], mono: ['Fira Code','monospace'] }
+        }
+      }
+    }
+  </script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;overflow:hidden}
+    body{background:#020617;color:#F8FAFC;font-family:'Fira Sans',sans-serif;font-size:14px;line-height:1.5}
+    ::-webkit-scrollbar{width:3px;height:3px}
+    ::-webkit-scrollbar-track{background:#0F172A}
+    ::-webkit-scrollbar-thumb{background:#334155;border-radius:2px}
+    ::-webkit-scrollbar-thumb:hover{background:#475569}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+    @keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-5px)}}
+    @keyframes fadeSlideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes slideRight{from{transform:translateX(100%)}to{transform:translateX(0)}}
+    @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+    @keyframes countUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .pulse{animation:pulse 2s ease-in-out infinite}
+    .b1{animation:bounce 1.4s ease-in-out infinite}
+    .b2{animation:bounce 1.4s ease-in-out .2s infinite}
+    .b3{animation:bounce 1.4s ease-in-out .4s infinite}
+    .log-in{animation:fadeSlideIn .25s ease}
+    .chat-slide{animation:slideRight .2s ease-out}
+    .chat-up{animation:slideUp .2s ease-out}
+    .count-up{animation:countUp .4s ease}
+    .drop-zone{border:1.5px dashed #3B82F6 !important;background:#3B82F608 !important}
+    .kanban-scroll{overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+    .k-col{scroll-snap-align:start;min-width:240px;max-width:240px}
+    @media(min-width:769px){.k-col{min-width:220px;max-width:none;flex:1}}
+    .sidebar{width:220px;transition:width .22s ease;flex-shrink:0}
+    .sidebar.col{width:52px}
+    .tip-wrap{position:relative}
+    .tip-wrap .tip{position:absolute;left:calc(100% + 8px);top:50%;transform:translateY(-50%);background:#1E293B;color:#F8FAFC;font-size:11px;white-space:nowrap;padding:3px 8px;border-radius:4px;border:1px solid #334155;opacity:0;pointer-events:none;transition:opacity .12s;z-index:100}
+    .tip-wrap:hover .tip{opacity:1}
+    @media(max-width:768px){
+      .desktop-only{display:none!important}
+      .mobile-only{display:flex!important}
+      .main-area{padding-left:0!important;padding-bottom:68px!important}
+      .chat-panel{position:fixed!important;left:0!important;right:0!important;bottom:64px!important;top:auto!important;width:100%!important;height:72vh!important;border-radius:16px 16px 0 0!important;animation:slideUp .2s ease-out!important}
+    }
+    @media(min-width:769px){
+      .mobile-only{display:none!important}
+    }
+    .bar-bg{background:#1E293B;border-radius:3px;overflow:hidden;height:4px}
+    .bar-fill{height:100%;border-radius:3px;transition:width 1.2s ease}
+    code,pre,.mono{font-family:'Fira Code',monospace}
+    .metric-glow{text-shadow:0 0 24px rgba(59,130,246,.45)}
+    .ok-glow{text-shadow:0 0 20px rgba(34,197,94,.5)}
+    .err-glow{text-shadow:0 0 20px rgba(239,68,68,.5)}
+    .card{background:#0F172A;border:1px solid #334155;border-radius:10px}
+    .card-sm{background:#0F172A;border:1px solid #334155;border-radius:8px}
+    .tag{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:500;font-family:'Fira Code',monospace}
+    input[type=text],textarea{background:#1E293B;border:1px solid #334155;border-radius:6px;color:#F8FAFC;font-family:'Fira Sans',sans-serif;font-size:13px;padding:8px 12px;outline:none;transition:border-color .15s}
+    input[type=text]:focus,textarea:focus{border-color:#3B82F6}
+    button{cursor:pointer;transition:all .15s ease;font-family:'Fira Sans',sans-serif}
+    select{background:#1E293B;border:1px solid #334155;border-radius:6px;color:#F8FAFC;font-size:13px;padding:6px 10px;outline:none}
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef,useCallback,useReducer}=React;
+
+/* ─── ICONS ─────────────────────────────────────────────────────── */
+const I=({d,s=16,sw=1.75,fill="none",cls=""})=>(
+  <svg width={s} height={s} viewBox="0 0 24 24" fill={fill} stroke="currentColor"
+       strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" className={cls}>
+    {Array.isArray(d)?d.map((p,i)=><path key={i} d={p}/>):<path d={d}/>}
+  </svg>
+);
+const icons={
+  dashboard:["M3 3h7v9H3V3zm11-0h7v5h-7V3zM3 14h7v7H3v-7zm11-2h7v9h-7v-9z"],
+  tasks:["M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2","M9 5a2 2 0 002 2h2a2 2 0 002-2","M9 5a2 2 0 012-2h2a2 2 0 012 2","M9 12l2 2 4-4"],
+  users:["M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2","M23 21v-2a4 4 0 00-3-3.87","M16 3.13a4 4 0 010 7.75","M9 7a4 4 0 100 8 4 4 0 000-8z"],
+  clock:["M12 2a10 10 0 100 20 10 10 0 000-20z","M12 6v6l4 2"],
+  trending:["M23 6l-9.5 9.5-5-5L1 18","M17 6h6v6"],
+  radio:["M12 1a3 3 0 100 6 3 3 0 000-6z","M6.3 6.3a8 8 0 000 11.4","M17.7 6.3a8 8 0 010 11.4","M3.1 3.1a13 13 0 000 17.8","M20.9 3.1a13 13 0 010 17.8"],
+  terminal:["M4 17l6-6-6-6","M12 19h8"],
+  chat:["M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z"],
+  chevronL:["M15 18l-6-6 6-6"],
+  chevronR:["M9 18l6-6-6-6"],
+  chevronD:["M6 9l6 6 6-6"],
+  x:["M18 6L6 18","M6 6l12 12"],
+  plus:["M12 5v14","M5 12h14"],
+  send:["M22 2L11 13","M22 2L15 22 11 13 2 9l20-7z"],
+  menu:["M3 12h18","M3 6h18","M3 18h18"],
+  zap:["M13 2L3 14h9l-1 8 10-12h-9l1-8z"],
+  activity:["M22 12h-4l-3 9L9 3l-3 9H2"],
+  alertC:["M12 2a10 10 0 100 20 10 10 0 000-20z","M12 8v4","M12 16h.01"],
+  checkC:["M12 2a10 10 0 100 20 10 10 0 000-20z","M9 12l2 2 4-4"],
+  xC:["M12 2a10 10 0 100 20 10 10 0 000-20z","M15 9l-6 6","M9 9l6 6"],
+  pause:["M6 4h4v16H6V4z","M14 4h4v16h-4V4z"],
+  play:["M5 3l14 9-14 9V3z"],
+  grip:["M9 5h.01M9 12h.01M9 19h.01M15 5h.01M15 12h.01M15 19h.01"],
+  bot:["M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7v2a2 2 0 01-2 2h-1v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-1H5a2 2 0 01-2-2v-2a7 7 0 017-7h1V5.73A2 2 0 0112 2z","M9 14h.01M15 14h.01","M9.5 17.5h5"],
+  user:["M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2","M12 3a4 4 0 100 8 4 4 0 000-8z"],
+  settings:["M12 15a3 3 0 100-6 3 3 0 000 6z","M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"],
+  bell:["M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9","M13.73 21a2 2 0 01-3.46 0"],
+  eye:["M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z","M12 9a3 3 0 100 6 3 3 0 000-6z"],
+  refresh:["M23 4v6h-6","M1 20v-6h6","M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"],
+  filter:["M22 3H2l8 9.46V19l4 2V12.46L22 3z"],
+  dollar:["M12 1v22","M17 5H9.5a3.5 3.5 0 100 7h5a3.5 3.5 0 110 7H6"],
+  arrowUp:["M12 19V5","M5 12l7-7 7 7"],
+  arrowDown:["M12 5v14","M19 12l-7 7-7-7"],
+  moreV:["M12 5h.01","M12 12h.01","M12 19h.01"],
+  wifi:["M5 12.55a11 11 0 0114.08 0","M1.42 9a16 16 0 0121.16 0","M8.53 16.11a6 6 0 016.95 0","M12 20h.01"],
+  server:["M2 9a2 2 0 012-2h16a2 2 0 012 2v2a2 2 0 01-2 2H4a2 2 0 01-2-2V9z","M2 15h20","M6 9h.01","M6 18h.01"],
+  code:["M16 18l6-6-6-6","M8 6l-6 6 6 6"],
+};
+const Ic=({n,s=15,cls=""})=><I d={icons[n]||["M3 3h18v18H3z"]} s={s} cls={cls}/>;
+
+/* ─── MOCK DATA ──────────────────────────────────────────────────── */
+const TASKS=[
+  {id:'t1',title:'Random Trader pre-market summary',status:'running',priority:'HIGH',model:'claude-sonnet-4-6',tags:['trading','report']},
+  {id:'t2',title:'TikTok batch content — May week 3',status:'todo',priority:'MED',model:'claude-sonnet-4-6',tags:['content','social']},
+  {id:'t3',title:'Landing page copy refresh',status:'backlog',priority:'LOW',model:null,tags:[]},
+  {id:'t4',title:'DeepSeek cron fallback report',status:'done',priority:'LOW',model:'deepseek-r1',tags:[]},
+  {id:'t5',title:'Hermes workspace sync',status:'done',priority:'MED',model:'system',tags:[]},
+  {id:'t6',title:'Camofox webhook retry',status:'failed',priority:'HIGH',model:'system',tags:[]},
+  {id:'t7',title:'Reddit post — indie hacker update',status:'backlog',priority:'LOW',model:null,tags:[]},
+  {id:'t8',title:'Dashboard API integration',status:'todo',priority:'HIGH',model:null,tags:[]},
+];
+const CRM=[
+  {id:'c1',name:'Alex Rivera',company:'FinTech Startup',stage:'lead',value:1200},
+  {id:'c2',name:'Sarah Chen',company:'Hedge Fund LLC',stage:'qualified',value:4800},
+  {id:'c3',name:'Marcus Webb',company:'Day Trader Pro',stage:'proposal',value:2400},
+  {id:'c4',name:'Yuki Tanaka',company:'Alpha Capital',stage:'closed',value:1200},
+  {id:'c5',name:'Dana Osei',company:'Solo Trader',stage:'lead',value:1200},
+  {id:'c6',name:'Tom Holt',company:'Quant Labs',stage:'qualified',value:9600},
+];
+const CRONS=[
+  {id:'cr1',name:'api-monitor',schedule:'*/5 * * * *',status:'ok',model:'system',runs:1248},
+  {id:'cr2',name:'ram-check',schedule:'*/15 * * * *',status:'ok',model:'system',runs:416},
+  {id:'cr3',name:'deepseek-cron',schedule:'0 */4 * * *',status:'ok',model:'deepseek-r1',runs:84},
+  {id:'cr4',name:'content-scheduler',schedule:'0 9,21 * * *',status:'ok',model:'claude-sonnet-4-6',runs:62},
+  {id:'cr5',name:'camofox-webhook',schedule:'*/30 * * * *',status:'warn',model:'system',runs:208},
+  {id:'cr6',name:'market-open-report',schedule:'30 9 * * 1-5',status:'ok',model:'claude-sonnet-4-6',runs:21},
+];
+const API_EPS=[
+  {id:'a1',name:'Anthropic /v1/messages',latency:820,status:'ok',uptime:99.94},
+  {id:'a2',name:'OpenRouter /deepseek-r1',latency:2140,status:'warn',uptime:98.71},
+  {id:'a3',name:'Higgsfield /generate',latency:4310,status:'ok',uptime:99.12},
+  {id:'a4',name:'Postiz API',latency:210,status:'ok',uptime:99.99},
+  {id:'a5',name:'Camofox Webhook',latency:null,status:'error',uptime:97.43},
+  {id:'a6',name:'Hostinger KVM2 (SSH)',latency:44,status:'ok',uptime:100},
+];
+const TOKEN_LABELS=['00:00','04:00','08:00','12:00','16:00','20:00','Now'];
+const TOKEN_CLAUDE=[12000,18000,31000,42000,54000,38000,47000];
+const TOKEN_DEEP=[2000,4500,8000,11000,7000,9500,6000];
+const COST_LABELS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const COST_DATA=[3.21,4.87,2.94,5.13,6.42,1.88,4.90];
+const LOG_SEEDS=[
+  {level:'INFO',msg:'Hermes agent heartbeat OK',src:'hermes-core'},
+  {level:'INFO',msg:'api-monitor cron executed successfully',src:'cron'},
+  {level:'WARN',msg:'Camofox webhook timeout after 30s',src:'camofox'},
+  {level:'INFO',msg:'Random Trader pre-market summary started',src:'claude-sonnet'},
+  {level:'ERROR',msg:'ERR_CONNECTION_TIMEOUT POST camofox.io/webhook/v2',src:'camofox'},
+  {level:'DEBUG',msg:'Token usage: 8,421 input / 312 output',src:'anthropic'},
+  {level:'INFO',msg:'DeepSeek cron fallback triggered',src:'openrouter'},
+  {level:'INFO',msg:'RAM check: 3.2GB / 8GB (40%)',src:'system'},
+  {level:'WARN',msg:'OpenRouter latency spike: 2,140ms',src:'openrouter'},
+  {level:'INFO',msg:'Postiz content scheduled for 21:00',src:'postiz'},
+  {level:'INFO',msg:'Hermes workspace sync complete',src:'hermes-ws'},
+  {level:'DEBUG',msg:'Camofox retry #3 failed — pausing cron',src:'camofox'},
+];
+const INIT_LOGS=LOG_SEEDS.map((l,i)=>({...l,id:`l${i}`,ts:new Date(Date.now()-LOG_SEEDS.length*9000+i*9000)}));
+const INIT_CHAT=[
+  {role:'assistant',content:"Hi Make — I'm Hermes. Your stack is online. Camofox webhook is failing, want me to retry or debug it?"},
+  {role:'user',content:"Retry the webhook and show me the last error log."},
+  {role:'assistant',content:"Retrying now… The last error was: `ERR_CONNECTION_TIMEOUT` on POST to `camofox.io/webhook/v2`. Retry #3 failed. Want me to pause the cron and alert you via a task?"},
+];
+const SYSTEM_PROMPT=`You are Hermes, an AI agent assistant running on a Hostinger KVM2 VPS (Ubuntu 22.04).
+You help the user (Make) manage their automation stack:
+- Claude Sonnet 4.6 (primary model, model ID: claude-sonnet-4-6)
+- DeepSeek R1 (cron/fallback via OpenRouter)
+- Postiz (social scheduling, Docker)
+- Camofox (Docker)
+- Higgsfield (image/video generation)
+Projects: Random Trader (self-hosted AI trading dashboard, lifetime license), Random Solutions (parent company).
+Be concise, technical, and helpful. Use backticks for code/commands. Reference the actual stack when relevant.`;
+
+/* ─── HELPERS ────────────────────────────────────────────────────── */
+const fmtTime=d=>`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+const fmtTs=d=>{const h=d.getHours(),m=d.getMinutes(),s=d.getSeconds();return`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;};
+const logColor={INFO:'#94A3B8',WARN:'#F59E0B',ERROR:'#EF4444',DEBUG:'#6366F1'};
+const logBg={INFO:'',WARN:'rgba(245,158,11,.06)',ERROR:'rgba(239,68,68,.08)',DEBUG:'rgba(99,102,241,.05)'};
+const statusColor={ok:'#22C55E',warn:'#F59E0B',error:'#EF4444',disabled:'#475569'};
+const priorityColor={HIGH:'#EF4444',MED:'#F59E0B',LOW:'#6366F1'};
+const modelColor={'claude-sonnet-4-6':'#3B82F6','deepseek-r1':'#A855F7',system:'#475569'};
+const modelShort={'claude-sonnet-4-6':'Sonnet','deepseek-r1':'DeepSeek',system:'sys'};
+const stageLabel={lead:'Lead',qualified:'Qualified',proposal:'Proposal',closed:'Closed'};
+let logCounter=LOG_SEEDS.length;
+const genLog=()=>{
+  const seed=LOG_SEEDS[logCounter%LOG_SEEDS.length];
+  logCounter++;
+  return{...seed,id:`l${Date.now()}`,ts:new Date()};
+};
+
+/* ─── STATUS DOT ─────────────────────────────────────────────────── */
+const Dot=({s,pulse=false})=>(
+  <span className={`inline-block w-2 h-2 rounded-full ${pulse?'pulse':''}`} style={{background:statusColor[s]||'#475569'}}/>
+);
+
+/* ─── BADGE ──────────────────────────────────────────────────────── */
+const Badge=({label,color='#334155',bg='#1E293B'})=>(
+  <span className="tag" style={{color,background:bg+'22',border:`1px solid ${color}44`}}>{label}</span>
+);
+
+/* ─── CHART: Line Area ────────────────────────────────────────────── */
+const LineAreaChart=({labels,series,height=160})=>{
+  const ref=useRef(null);const chart=useRef(null);
+  useEffect(()=>{
+    if(!ref.current)return;
+    if(chart.current)chart.current.destroy();
+    chart.current=new Chart(ref.current,{
+      type:'line',
+      data:{labels,datasets:series.map(s=>({
+        label:s.label,data:s.data,borderColor:s.color,
+        backgroundColor:s.color+'18',fill:true,tension:.4,
+        borderWidth:2,pointRadius:3,pointBackgroundColor:s.color,
+        pointBorderColor:'#020617',pointBorderWidth:2,
+      }))},
+      options:{
+        responsive:true,maintainAspectRatio:false,animation:{duration:600},
+        interaction:{mode:'index',intersect:false},
+        plugins:{legend:{display:true,position:'top',labels:{color:'#94A3B8',font:{size:11,family:'Fira Code'},boxWidth:10,padding:12}},
+          tooltip:{backgroundColor:'#1E293B',borderColor:'#334155',borderWidth:1,titleColor:'#F8FAFC',bodyColor:'#94A3B8',
+            callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.raw.toLocaleString()}`}}},
+        scales:{
+          x:{grid:{color:'#334155',drawBorder:false},ticks:{color:'#475569',font:{size:10,family:'Fira Code'}}},
+          y:{grid:{color:'#334155',drawBorder:false},ticks:{color:'#475569',font:{size:10,family:'Fira Code'},callback:v=>v>=1000?`${(v/1000).toFixed(0)}k`:v}},
+        }
+      }
+    });
+    return()=>{if(chart.current)chart.current.destroy();};
+  },[]);
+  return<div style={{height}}><canvas ref={ref}/></div>;
+};
+
+/* ─── CHART: Bar ─────────────────────────────────────────────────── */
+const BarChart=({labels,data,color='#3B82F6',height=140})=>{
+  const ref=useRef(null);const chart=useRef(null);
+  useEffect(()=>{
+    if(!ref.current)return;
+    if(chart.current)chart.current.destroy();
+    chart.current=new Chart(ref.current,{
+      type:'bar',
+      data:{labels,datasets:[{data,backgroundColor:data.map(v=>v===Math.max(...data)?color:color+'55'),borderRadius:5,borderSkipped:false}]},
+      options:{
+        responsive:true,maintainAspectRatio:false,animation:{duration:600},
+        plugins:{legend:{display:false},tooltip:{backgroundColor:'#1E293B',borderColor:'#334155',borderWidth:1,titleColor:'#F8FAFC',bodyColor:'#94A3B8',callbacks:{label:ctx=>`$${ctx.raw.toFixed(2)}`}}},
+        scales:{
+          x:{grid:{display:false},ticks:{color:'#475569',font:{size:10,family:'Fira Code'}}},
+          y:{grid:{color:'#334155',drawBorder:false},ticks:{color:'#475569',font:{size:10,family:'Fira Code'},callback:v=>`$${v}`}},
+        }
+      }
+    });
+    return()=>{if(chart.current)chart.current.destroy();};
+  },[]);
+  return<div style={{height}}><canvas ref={ref}/></div>;
+};
+
+/* ─── SIDEBAR ────────────────────────────────────────────────────── */
+const NAV=[
+  {id:'overview',label:'Overview',icon:'dashboard'},
+  {id:'tasks',label:'Task Board',icon:'tasks'},
+  {id:'crm',label:'CRM',icon:'users'},
+  {id:'cron',label:'Cron Jobs',icon:'clock'},
+  {id:'usage',label:'Usage',icon:'trending'},
+  {id:'api',label:'API Monitor',icon:'radio'},
+  {id:'logs',label:'Log Stream',icon:'terminal'},
+];
+const Sidebar=({view,setView,collapsed,setCollapsed,onChat})=>(
+  <aside className={`sidebar desktop-only ${collapsed?'col':''} flex flex-col h-full`}
+    style={{background:'#0A1628',borderRight:'1px solid #1E293B',flexShrink:0}}>
+    {/* Logo */}
+    <div className="flex items-center px-3 py-4 gap-3" style={{borderBottom:'1px solid #1E293B',minHeight:56}}>
+      <div className="flex items-center justify-center w-8 h-8 rounded-lg flex-shrink-0"
+        style={{background:'linear-gradient(135deg,#3B82F6,#6366F1)'}}>
+        <Ic n="zap" s={14} cls="text-white"/>
+      </div>
+      {!collapsed&&<span className="font-mono font-bold text-sm tracking-widest" style={{color:'#F8FAFC',letterSpacing:'.12em'}}>HERMES</span>}
+    </div>
+    {/* Nav */}
+    <nav className="flex-1 py-3 flex flex-col gap-1 overflow-y-auto px-2">
+      {NAV.map(n=>{
+        const active=view===n.id;
+        return(
+          <div key={n.id} className="tip-wrap">
+            <button onClick={()=>setView(n.id)}
+              className={`flex items-center gap-3 w-full rounded-lg font-medium transition-all ${collapsed?'justify-center px-0 py-3':'px-3 py-2.5'}`}
+              style={{
+                color:active?'#F8FAFC':'#64748B',
+                background:active?'#1E3A5F':'transparent',
+                minHeight:44,
+              }}
+              onMouseEnter={e=>{if(!active)e.currentTarget.style.background='#1E293B';if(!active)e.currentTarget.style.color='#CBD5E1'}}
+              onMouseLeave={e=>{if(!active)e.currentTarget.style.background='transparent';if(!active)e.currentTarget.style.color='#64748B'}}
+            >
+              <Ic n={n.icon} s={16}/>
+              {!collapsed&&<span className="text-sm">{n.label}</span>}
+              {!collapsed&&active&&<span className="ml-auto w-1.5 h-1.5 rounded-full" style={{background:'#3B82F6'}}/>}
+            </button>
+            {collapsed&&<span className="tip">{n.label}</span>}
+          </div>
+        );
+      })}
+    </nav>
+    {/* System status */}
+    {!collapsed&&(
+      <div className="px-3 py-3" style={{borderTop:'1px solid #1E293B'}}>
+        <div className="flex items-center gap-2 mb-2">
+          <Dot s="ok" pulse/><span className="text-xs" style={{color:'#64748B'}}>KVM2 online</span>
+        </div>
+        <div className="bar-bg mb-1"><div className="bar-fill" style={{width:'40%',background:'#22C55E'}}/></div>
+        <div className="flex justify-between text-xs" style={{color:'#475569'}}>
+          <span className="mono">3.2GB / 8GB RAM</span>
+          <span className="mono">40%</span>
+        </div>
+      </div>
+    )}
+    {/* Chat + collapse */}
+    <div className="flex flex-col gap-1 px-2 py-2" style={{borderTop:'1px solid #1E293B'}}>
+      <div className="tip-wrap">
+        <button onClick={onChat}
+          className={`flex items-center gap-3 w-full rounded-lg px-3 py-2.5 font-medium ${collapsed?'justify-center px-0':''}`}
+          style={{background:'#1E3A5F',color:'#3B82F6',minHeight:44}}
+          onMouseEnter={e=>e.currentTarget.style.background='#1E4A7F'}
+          onMouseLeave={e=>e.currentTarget.style.background='#1E3A5F'}
+        >
+          <Ic n="chat" s={15}/>{!collapsed&&<span className="text-sm">Chat Hermes</span>}
+        </button>
+        {collapsed&&<span className="tip">Chat Hermes</span>}
+      </div>
+      <div className="tip-wrap">
+        <button onClick={()=>setCollapsed(c=>!c)}
+          className={`flex items-center gap-3 w-full rounded-lg px-3 py-2 ${collapsed?'justify-center px-0':''}`}
+          style={{color:'#475569',minHeight:40}}
+          onMouseEnter={e=>{e.currentTarget.style.color='#94A3B8';e.currentTarget.style.background='#1E293B'}}
+          onMouseLeave={e=>{e.currentTarget.style.color='#475569';e.currentTarget.style.background='transparent'}}
+        >
+          <Ic n={collapsed?'chevronR':'chevronL'} s={15}/>
+          {!collapsed&&<span className="text-xs">Collapse</span>}
+        </button>
+        {collapsed&&<span className="tip">Expand</span>}
+      </div>
+    </div>
+  </aside>
+);
+
+/* ─── BOTTOM NAV (mobile) ────────────────────────────────────────── */
+const BottomNav=({view,setView,onChat})=>(
+  <nav className="mobile-only fixed bottom-0 left-0 right-0 z-40 items-end"
+    style={{background:'#0A1628',borderTop:'1px solid #1E293B',padding:'4px 0 8px'}}>
+    <div className="flex justify-around items-center">
+      {NAV.slice(0,5).map(n=>{
+        const a=view===n.id;
+        return(
+          <button key={n.id} onClick={()=>setView(n.id)}
+            className="flex flex-col items-center gap-1 px-1 py-1 rounded-lg"
+            style={{color:a?'#3B82F6':'#475569',minWidth:44,minHeight:44}}>
+            <Ic n={n.icon} s={18}/>
+            <span style={{fontSize:9,fontFamily:'Fira Code'}}>{n.label.split(' ')[0]}</span>
+          </button>
+        );
+      })}
+      <button onClick={onChat} className="flex flex-col items-center gap-1 px-1 py-1 rounded-lg"
+        style={{color:'#3B82F6',minWidth:44,minHeight:44}}>
+        <Ic n="chat" s={18}/><span style={{fontSize:9,fontFamily:'Fira Code'}}>Chat</span>
+      </button>
+    </div>
+  </nav>
+);
+
+/* ─── TOP BAR ────────────────────────────────────────────────────── */
+const TopBar=({time,view,onMenuToggle,onChat})=>{
+  const viewLabel=NAV.find(n=>n.id===view)?.label||'';
+  return(
+    <header className="flex items-center justify-between px-4 flex-shrink-0"
+      style={{height:52,background:'#0A1628',borderBottom:'1px solid #1E293B',zIndex:30}}>
+      <div className="flex items-center gap-3">
+        <button className="desktop-only p-1" style={{color:'#475569'}} onClick={onMenuToggle}>
+          <Ic n="menu" s={16}/>
+        </button>
+        <span className="font-semibold text-sm" style={{color:'#CBD5E1'}}>{viewLabel}</span>
+        <div className="flex items-center gap-1.5 ml-2">
+          <Dot s="ok" pulse/>
+          <span className="mono text-xs" style={{color:'#475569'}}>Hermes online</span>
+        </div>
+      </div>
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-1.5">
+          <span className="mono text-xs" style={{color:'#EF4444'}}>● </span>
+          <span className="mono text-xs" style={{color:'#F59E0B'}}>Camofox ERR</span>
+        </div>
+        <div className="mono text-sm font-medium" style={{color:'#3B82F6'}}>{fmtTime(time)}</div>
+        <button onClick={onChat} className="desktop-only flex items-center gap-2 px-3 py-1.5 rounded-lg"
+          style={{background:'#1E3A5F',color:'#3B82F6',fontSize:12}}
+          onMouseEnter={e=>e.currentTarget.style.background='#1E4A7F'}
+          onMouseLeave={e=>e.currentTarget.style.background='#1E3A5F'}
+        >
+          <Ic n="chat" s={13}/>Chat
+        </button>
+        <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
+          style={{background:'linear-gradient(135deg,#3B82F6,#6366F1)',color:'#fff'}}>M</div>
+      </div>
+    </header>
+  );
+};
+
+/* ─── CHAT PANEL ─────────────────────────────────────────────────── */
+const ChatPanel=({open,onClose,messages,setMessages})=>{
+  const [input,setInput]=useState('');
+  const [loading,setLoading]=useState(false);
+  const bottomRef=useRef(null);
+  const API_KEY=window.ANTHROPIC_API_KEY||'';
+
+  useEffect(()=>{bottomRef.current?.scrollIntoView({behavior:'smooth'});},[messages,loading]);
+
+  const send=async()=>{
+    const txt=input.trim();if(!txt)return;
+    const userMsg={role:'user',content:txt};
+    setMessages(m=>[...m,userMsg]);
+    setInput('');setLoading(true);
+    try{
+      const r=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01'},
+        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:SYSTEM_PROMPT,
+          messages:[...messages,userMsg].map(m=>({role:m.role,content:m.content}))}),
+      });
+      const d=await r.json();
+      const text=d.content?.[0]?.text||d.error?.message||'No response';
+      setMessages(m=>[...m,{role:'assistant',content:text}]);
+    }catch(e){
+      setMessages(m=>[...m,{role:'assistant',content:`Connection error. ${API_KEY?'Check API key.':'Set window.ANTHROPIC_API_KEY in console.'}`}]);
+    }finally{setLoading(false);}
+  };
+
+  const renderMsg=txt=>{
+    const parts=txt.split(/(`[^`]+`)/g);
+    return parts.map((p,i)=>p.startsWith('`')&&p.endsWith('`')
+      ?<code key={i} className="mono px-1.5 py-0.5 rounded text-xs" style={{background:'#1E293B',color:'#22C55E'}}>{p.slice(1,-1)}</code>
+      :<span key={i}>{p}</span>);
+  };
+
+  if(!open)return null;
+  return(
+    <div className="chat-panel chat-slide fixed top-0 right-0 bottom-0 flex flex-col z-50"
+      style={{width:340,background:'#0A1628',borderLeft:'1px solid #1E293B'}}>
+      <div className="flex items-center justify-between px-4 py-3 flex-shrink-0"
+        style={{borderBottom:'1px solid #1E293B',minHeight:52}}>
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+            style={{background:'linear-gradient(135deg,#3B82F6,#6366F1)'}}>
+            <Ic n="bot" s={13} cls="text-white"/>
+          </div>
+          <div>
+            <div className="text-sm font-semibold">Hermes</div>
+            <div className="text-xs flex items-center gap-1" style={{color:'#64748B'}}>
+              <Dot s="ok"/><span>claude-sonnet-4-6</span>
+            </div>
+          </div>
+        </div>
+        <button onClick={onClose} className="p-1.5 rounded-lg" style={{color:'#475569'}}
+          onMouseEnter={e=>e.currentTarget.style.color='#94A3B8'}
+          onMouseLeave={e=>e.currentTarget.style.color='#475569'}
+        ><Ic n="x" s={15}/></button>
+      </div>
+      {!API_KEY&&(
+        <div className="mx-3 mt-3 px-3 py-2 rounded-lg text-xs" style={{background:'#1E293B',color:'#F59E0B',border:'1px solid #F59E0B44'}}>
+          Set <code className="mono" style={{color:'#22C55E'}}>window.ANTHROPIC_API_KEY='sk-…'</code> in console to enable chat.
+        </div>
+      )}
+      <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-3">
+        {messages.map((m,i)=>(
+          <div key={i} className={`flex gap-2 ${m.role==='user'?'flex-row-reverse':''}`}>
+            <div className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold`}
+              style={{background:m.role==='user'?'linear-gradient(135deg,#6366F1,#A855F7)':'linear-gradient(135deg,#3B82F6,#22C55E)',color:'#fff'}}>
+              {m.role==='user'?'M':<Ic n="bot" s={11}/>}
+            </div>
+            <div className={`rounded-xl px-3 py-2 text-sm max-w-[75%] leading-relaxed`}
+              style={{background:m.role==='user'?'#1E293B':'#0F172A',color:'#CBD5E1',border:'1px solid #334155',
+                borderRadius:m.role==='user'?'12px 12px 4px 12px':'12px 12px 12px 4px'}}>
+              {renderMsg(m.content)}
+            </div>
+          </div>
+        ))}
+        {loading&&(
+          <div className="flex gap-2">
+            <div className="w-6 h-6 rounded-full flex items-center justify-center"
+              style={{background:'linear-gradient(135deg,#3B82F6,#22C55E)'}}>
+              <Ic n="bot" s={11} cls="text-white"/>
+            </div>
+            <div className="flex items-center gap-1.5 px-4 py-3 rounded-xl" style={{background:'#0F172A',border:'1px solid #334155'}}>
+              <span className="b1 w-1.5 h-1.5 rounded-full" style={{background:'#3B82F6'}}/>
+              <span className="b2 w-1.5 h-1.5 rounded-full" style={{background:'#3B82F6'}}/>
+              <span className="b3 w-1.5 h-1.5 rounded-full" style={{background:'#3B82F6'}}/>
+            </div>
+          </div>
+        )}
+        <div ref={bottomRef}/>
+      </div>
+      <div className="px-3 pb-4 flex-shrink-0" style={{borderTop:'1px solid #1E293B',paddingTop:12}}>
+        <div className="flex gap-2">
+          <input type="text" value={input} onChange={e=>setInput(e.target.value)}
+            onKeyDown={e=>e.key==='Enter'&&!e.shiftKey&&send()}
+            placeholder="Ask Hermes…" className="flex-1 text-sm"
+            style={{background:'#1E293B',border:'1px solid #334155',borderRadius:8,color:'#F8FAFC',padding:'8px 12px',outline:'none',fontSize:13}}
+          />
+          <button onClick={send} disabled={loading||!input.trim()}
+            className="flex items-center justify-center rounded-lg flex-shrink-0"
+            style={{background:loading||!input.trim()?'#1E293B':'#3B82F6',color:'#fff',width:38,height:38,border:'none',opacity:loading?0.6:1}}>
+            <Ic n="send" s={14}/>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ─── VIEW: OVERVIEW ─────────────────────────────────────────────── */
+const OverviewView=({tasks,logs,time})=>{
+  const running=tasks.filter(t=>t.status==='running').length;
+  const failed=tasks.filter(t=>t.status==='failed').length;
+  const done=tasks.filter(t=>t.status==='done').length;
+  const recentLogs=logs.slice(-6).reverse();
+  return(
+    <div className="p-4 md:p-6 space-y-5">
+      {/* Metric tiles */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          {label:'Active Tasks',val:running,icon:'zap',color:'#3B82F6',sub:'running now'},
+          {label:'Tasks Done',val:done,icon:'checkC',color:'#22C55E',sub:'all time'},
+          {label:'Failed',val:failed,icon:'xC',color:'#EF4444',sub:'need attention'},
+          {label:'Token Cost',val:'$4.90',icon:'dollar',color:'#F59E0B',sub:'today'},
+        ].map((m,i)=>(
+          <div key={i} className="card p-4">
+            <div className="flex items-start justify-between mb-3">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+                style={{background:m.color+'18',color:m.color}}>
+                <Ic n={m.icon} s={15}/>
+              </div>
+              <Ic n="moreV" s={14} cls="opacity-30"/>
+            </div>
+            <div className="mono text-2xl font-bold mb-0.5 count-up" style={{color:m.color}}>{m.val}</div>
+            <div className="text-xs font-semibold mb-0.5" style={{color:'#CBD5E1'}}>{m.label}</div>
+            <div className="text-xs" style={{color:'#475569'}}>{m.sub}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* System Health */}
+        <div className="card p-4">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-sm font-semibold">System Health</span>
+            <div className="flex items-center gap-1.5"><Dot s="ok" pulse/><span className="mono text-xs" style={{color:'#22C55E'}}>KVM2</span></div>
+          </div>
+          <div className="space-y-3">
+            {[
+              {label:'RAM',val:40,used:'3.2GB',total:'8GB',color:'#22C55E'},
+              {label:'CPU',val:23,used:'23%',total:'4vCPU',color:'#3B82F6'},
+              {label:'Disk',val:61,used:'61GB',total:'100GB',color:'#F59E0B'},
+              {label:'Network',val:12,used:'12Mb/s',total:'100Mb/s',color:'#6366F1'},
+            ].map(r=>(
+              <div key={r.label}>
+                <div className="flex justify-between text-xs mb-1" style={{color:'#94A3B8'}}>
+                  <span>{r.label}</span>
+                  <span className="mono">{r.used} / {r.total}</span>
+                </div>
+                <div className="bar-bg"><div className="bar-fill" style={{width:`${r.val}%`,background:r.color}}/></div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Recent Activity */}
+        <div className="card p-4 md:col-span-2">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-semibold">Recent Activity</span>
+            <span className="mono text-xs" style={{color:'#475569'}}>{fmtTime(time)}</span>
+          </div>
+          <div className="space-y-1.5">
+            {recentLogs.map(l=>(
+              <div key={l.id} className="flex items-start gap-2 px-2 py-1.5 rounded-lg text-xs log-in"
+                style={{background:logBg[l.level]}}>
+                <span className="mono font-bold flex-shrink-0" style={{color:logColor[l.level]}}>{l.level}</span>
+                <span style={{color:'#94A3B8'}} className="flex-1 truncate">{l.msg}</span>
+                <span className="mono flex-shrink-0" style={{color:'#475569'}}>{fmtTs(l.ts)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Quick task status */}
+      <div className="card p-4">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm font-semibold">Task Pipeline</span>
+          <div className="flex gap-3">
+            {[['backlog','#475569'],['todo','#6366F1'],['running','#3B82F6'],['done','#22C55E'],['failed','#EF4444']].map(([s,c])=>(
+              <div key={s} className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full" style={{background:c}}/>
+                <span className="mono text-xs" style={{color:'#64748B'}}>{s} ({tasks.filter(t=>t.status===s).length})</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="flex gap-1 h-2 rounded-full overflow-hidden">
+          {[['backlog','#475569'],['todo','#6366F1'],['running','#3B82F6'],['done','#22C55E'],['failed','#EF4444']].map(([s,c])=>{
+            const w=tasks.filter(t=>t.status===s).length/tasks.length*100;
+            return w>0&&<div key={s} style={{width:`${w}%`,background:c}} className="transition-all duration-700"/>;
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ─── VIEW: TASK BOARD ───────────────────────────────────────────── */
+const TaskBoardView=({tasks,setTasks})=>{
+  const [drag,setDrag]=useState({id:null,src:null});
+  const [over,setOver]=useState(null);
+  const [addCol,setAddCol]=useState(null);
+  const [addVal,setAddVal]=useState('');
+  const COLS=[
+    {id:'backlog',label:'Backlog',color:'#475569'},
+    {id:'todo',label:'Todo',color:'#6366F1'},
+    {id:'running',label:'Running',color:'#3B82F6'},
+    {id:'done',label:'Done',color:'#22C55E'},
+    {id:'failed',label:'Failed',color:'#EF4444'},
+  ];
+  const onDragStart=(e,id,src)=>{setDrag({id,src});e.dataTransfer.effectAllowed='move';};
+  const onDragOver=(e,col)=>{e.preventDefault();setOver(col);};
+  const onDrop=(e,col)=>{
+    e.preventDefault();setOver(null);
+    if(drag.src===col)return;
+    setTasks(t=>t.map(x=>x.id===drag.id?{...x,status:col}:x));
+    setDrag({id:null,src:null});
+  };
+  const addTask=(col)=>{
+    if(!addVal.trim())return;
+    setTasks(t=>[...t,{id:`t${Date.now()}`,title:addVal.trim(),status:col,priority:'MED',model:null,tags:[]}]);
+    setAddVal('');setAddCol(null);
+  };
+  return(
+    <div className="p-4 md:p-6 h-full overflow-hidden flex flex-col">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-semibold text-sm">Task Board <span className="mono ml-2 text-xs" style={{color:'#475569'}}>{tasks.length} tasks</span></h2>
+      </div>
+      <div className="kanban-scroll flex gap-3 flex-1 overflow-hidden pb-2">
+        {COLS.map(col=>{
+          const colTasks=tasks.filter(t=>t.status===col.id);
+          const isOver=over===col.id;
+          return(
+            <div key={col.id} className={`k-col flex flex-col gap-2 rounded-xl p-3 ${isOver?'drop-zone':''}`}
+              style={{background:'#0F172A',border:`1px solid ${isOver?'#3B82F6':'#1E293B'}`,height:'100%',overflowY:'auto'}}
+              onDragOver={e=>onDragOver(e,col.id)} onDrop={e=>onDrop(e,col.id)}
+              onDragLeave={()=>setOver(null)}>
+              <div className="flex items-center justify-between mb-1 sticky top-0" style={{background:'#0F172A',paddingBottom:4}}>
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full" style={{background:col.color}}/>
+                  <span className="text-xs font-semibold">{col.label}</span>
+                  <span className="mono text-xs px-1.5 py-0.5 rounded" style={{background:'#1E293B',color:'#64748B'}}>{colTasks.length}</span>
+                </div>
+                <button onClick={()=>setAddCol(col.id)} className="p-1 rounded" style={{color:'#475569'}}
+                  onMouseEnter={e=>e.currentTarget.style.color='#94A3B8'}
+                  onMouseLeave={e=>e.currentTarget.style.color='#475569'}>
+                  <Ic n="plus" s={13}/>
+                </button>
+              </div>
+              {addCol===col.id&&(
+                <div className="flex gap-1 mb-1">
+                  <input autoFocus type="text" value={addVal} onChange={e=>setAddVal(e.target.value)}
+                    onKeyDown={e=>{if(e.key==='Enter')addTask(col.id);if(e.key==='Escape'){setAddCol(null);setAddVal('');}}}
+                    placeholder="Task title…" className="flex-1 text-xs" style={{padding:'6px 8px',borderRadius:6}}/>
+                  <button onClick={()=>addTask(col.id)} className="px-2 rounded text-xs" style={{background:'#3B82F6',color:'#fff'}}>+</button>
+                </div>
+              )}
+              {colTasks.map(t=>(
+                <div key={t.id} draggable
+                  onDragStart={e=>onDragStart(e,t.id,col.id)}
+                  className="card-sm p-3 cursor-grab active:cursor-grabbing select-none"
+                  style={{transition:'transform .1s',background:drag.id===t.id?'#1E293B':'#0F172A'}}>
+                  <div className="text-xs font-medium mb-2 leading-snug" style={{color:'#CBD5E1'}}>{t.title}</div>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="tag" style={{color:priorityColor[t.priority],background:priorityColor[t.priority]+'15',border:`1px solid ${priorityColor[t.priority]}40`}}>
+                      {t.priority}
+                    </span>
+                    {t.model&&<span className="tag" style={{color:modelColor[t.model]||'#475569',background:(modelColor[t.model]||'#475569')+'15',border:`1px solid ${(modelColor[t.model]||'#475569')}40`}}>
+                      {modelShort[t.model]||t.model}
+                    </span>}
+                    {t.tags.map(g=><span key={g} className="tag" style={{color:'#64748B',background:'#1E293B',border:'1px solid #334155'}}>{g}</span>)}
+                  </div>
+                </div>
+              ))}
+              {colTasks.length===0&&!addCol&&(
+                <div className="flex-1 flex items-center justify-center text-xs" style={{color:'#334155',padding:'20px 0'}}>
+                  Drop here
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+/* ─── VIEW: CRM ──────────────────────────────────────────────────── */
+const CRMView=({contacts,setContacts})=>{
+  const [drag,setDrag]=useState({id:null,src:null});
+  const [over,setOver]=useState(null);
+  const [addStage,setAddStage]=useState(null);
+  const [addName,setAddName]=useState('');
+  const STAGES=[
+    {id:'lead',label:'Lead',color:'#6366F1'},
+    {id:'qualified',label:'Qualified',color:'#3B82F6'},
+    {id:'proposal',label:'Proposal',color:'#F59E0B'},
+    {id:'closed',label:'Closed',color:'#22C55E'},
+  ];
+  const totalPipeline=contacts.filter(c=>c.stage!=='closed').reduce((a,c)=>a+c.value,0);
+  const closed=contacts.filter(c=>c.stage==='closed').reduce((a,c)=>a+c.value,0);
+  const onDragStart=(e,id,src)=>{setDrag({id,src});e.dataTransfer.effectAllowed='move';};
+  const onDragOver=(e,s)=>{e.preventDefault();setOver(s);};
+  const onDrop=(e,s)=>{
+    e.preventDefault();setOver(null);
+    if(drag.src===s)return;
+    setContacts(c=>c.map(x=>x.id===drag.id?{...x,stage:s}:x));
+    setDrag({id:null,src:null});
+  };
+  const addContact=stage=>{
+    if(!addName.trim())return;
+    setContacts(c=>[...c,{id:`c${Date.now()}`,name:addName.trim(),company:'—',stage,value:0}]);
+    setAddName('');setAddStage(null);
+  };
+  return(
+    <div className="p-4 md:p-6 h-full overflow-hidden flex flex-col">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-semibold text-sm">CRM Pipeline</h2>
+        <div className="flex gap-4">
+          <div className="text-right">
+            <div className="mono text-xs" style={{color:'#475569'}}>Pipeline</div>
+            <div className="mono text-sm font-bold" style={{color:'#3B82F6'}}>${totalPipeline.toLocaleString()}</div>
+          </div>
+          <div className="text-right">
+            <div className="mono text-xs" style={{color:'#475569'}}>Closed</div>
+            <div className="mono text-sm font-bold" style={{color:'#22C55E'}}>${closed.toLocaleString()}</div>
+          </div>
+        </div>
+      </div>
+      <div className="kanban-scroll flex gap-3 flex-1 overflow-hidden pb-2">
+        {STAGES.map(s=>{
+          const cols=contacts.filter(c=>c.stage===s.id);
+          const stageVal=cols.reduce((a,c)=>a+c.value,0);
+          const isOver=over===s.id;
+          return(
+            <div key={s.id} className={`k-col flex flex-col gap-2 rounded-xl p-3 ${isOver?'drop-zone':''}`}
+              style={{background:'#0F172A',border:`1px solid ${isOver?'#3B82F6':'#1E293B'}`,height:'100%',overflowY:'auto'}}
+              onDragOver={e=>onDragOver(e,s.id)} onDrop={e=>onDrop(e,s.id)}
+              onDragLeave={()=>setOver(null)}>
+              <div className="flex items-center justify-between mb-1 sticky top-0" style={{background:'#0F172A',paddingBottom:4}}>
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full" style={{background:s.color}}/>
+                  <span className="text-xs font-semibold">{s.label}</span>
+                  <span className="mono text-xs px-1.5 py-0.5 rounded" style={{background:'#1E293B',color:'#64748B'}}>{cols.length}</span>
+                </div>
+                <button onClick={()=>setAddStage(s.id)} className="p-1 rounded" style={{color:'#475569'}}
+                  onMouseEnter={e=>e.currentTarget.style.color='#94A3B8'}
+                  onMouseLeave={e=>e.currentTarget.style.color='#475569'}>
+                  <Ic n="plus" s={13}/>
+                </button>
+              </div>
+              <div className="mono text-xs mb-2" style={{color:s.color}}>${stageVal.toLocaleString()}</div>
+              {addStage===s.id&&(
+                <div className="flex gap-1 mb-1">
+                  <input autoFocus type="text" value={addName} onChange={e=>setAddName(e.target.value)}
+                    onKeyDown={e=>{if(e.key==='Enter')addContact(s.id);if(e.key==='Escape'){setAddStage(null);setAddName('');}}}
+                    placeholder="Contact name…" className="flex-1 text-xs" style={{padding:'6px 8px',borderRadius:6}}/>
+                  <button onClick={()=>addContact(s.id)} className="px-2 rounded text-xs" style={{background:'#3B82F6',color:'#fff'}}>+</button>
+                </div>
+              )}
+              {cols.map(c=>(
+                <div key={c.id} draggable onDragStart={e=>onDragStart(e,c.id,s.id)}
+                  className="card-sm p-3 cursor-grab active:cursor-grabbing select-none">
+                  <div className="flex items-start justify-between mb-1">
+                    <div>
+                      <div className="text-xs font-semibold" style={{color:'#CBD5E1'}}>{c.name}</div>
+                      <div className="text-xs" style={{color:'#475569'}}>{c.company}</div>
+                    </div>
+                    {c.value>0&&<span className="mono text-xs font-bold" style={{color:s.color}}>${c.value.toLocaleString()}</span>}
+                  </div>
+                  <div className="flex items-center gap-1 mt-2">
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold"
+                      style={{background:s.color+'22',color:s.color}}>
+                      {c.name[0]}
+                    </div>
+                    <span className="tag" style={{color:s.color,background:s.color+'18',border:`1px solid ${s.color}40`}}>{stageLabel[c.stage]}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+/* ─── VIEW: CRON JOBS ────────────────────────────────────────────── */
+const CronView=({crons,setCrons})=>{
+  const dragIdx=useRef(null);
+  const [over,setOver]=useState(null);
+  const [paused,setPaused]=useState(new Set());
+  const onDragStart=(e,i)=>{dragIdx.current=i;e.dataTransfer.effectAllowed='move';};
+  const onDragOver=(e,i)=>{e.preventDefault();setOver(i);};
+  const onDrop=(e,i)=>{
+    e.preventDefault();setOver(null);
+    if(dragIdx.current===null||dragIdx.current===i)return;
+    const arr=[...crons];const [item]=arr.splice(dragIdx.current,1);arr.splice(i,0,item);
+    setCrons(arr);dragIdx.current=null;
+  };
+  const togglePause=id=>setPaused(s=>{const n=new Set(s);n.has(id)?n.delete(id):n.add(id);return n;});
+  return(
+    <div className="p-4 md:p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-semibold text-sm">Cron Jobs <span className="mono ml-2 text-xs" style={{color:'#475569'}}>drag to reorder</span></h2>
+        <div className="flex items-center gap-2">
+          <Dot s={crons.some(c=>c.status==='error')?'error':crons.some(c=>c.status==='warn')?'warn':'ok'}/>
+          <span className="text-xs" style={{color:'#64748B'}}>{crons.filter(c=>c.status==='ok').length}/{crons.length} healthy</span>
+        </div>
+      </div>
+      <div className="card overflow-hidden">
+        {/* Header */}
+        <div className="grid gap-3 px-4 py-2.5 text-xs font-semibold" style={{color:'#475569',borderBottom:'1px solid #1E293B',gridTemplateColumns:'24px 1fr 140px 80px 60px 80px 70px'}}>
+          <span/>
+          <span>Name</span>
+          <span>Schedule</span>
+          <span>Model</span>
+          <span>Status</span>
+          <span>Runs</span>
+          <span/>
+        </div>
+        {crons.map((c,i)=>(
+          <div key={c.id} draggable
+            onDragStart={e=>onDragStart(e,i)} onDragOver={e=>onDragOver(e,i)}
+            onDrop={e=>onDrop(e,i)} onDragLeave={()=>setOver(null)}
+            className={`grid gap-3 px-4 py-3 items-center text-sm transition-all ${over===i?'drop-zone':''}`}
+            style={{borderBottom:'1px solid #1E293B',cursor:'grab',opacity:paused.has(c.id)?0.5:1,
+              gridTemplateColumns:'24px 1fr 140px 80px 60px 80px 70px'}}>
+            <span style={{color:'#334155',cursor:'grab'}}><Ic n="grip" s={14}/></span>
+            <div>
+              <span className="mono font-medium text-xs" style={{color:'#CBD5E1'}}>{c.name}</span>
+              {paused.has(c.id)&&<span className="ml-2 tag text-xs" style={{color:'#F59E0B',background:'#F59E0B15',border:'1px solid #F59E0B40'}}>paused</span>}
+            </div>
+            <span className="mono text-xs" style={{color:'#64748B'}}>{c.schedule}</span>
+            <span className="tag text-xs" style={{color:modelColor[c.model]||'#475569',background:(modelColor[c.model]||'#475569')+'15',border:`1px solid ${(modelColor[c.model]||'#475569')}40`}}>
+              {modelShort[c.model]||c.model}
+            </span>
+            <div className="flex items-center gap-1.5">
+              <Dot s={c.status}/>
+              <span className="text-xs" style={{color:statusColor[c.status]}}>{c.status}</span>
+            </div>
+            <span className="mono text-xs" style={{color:'#64748B'}}>{c.runs.toLocaleString()}</span>
+            <div className="flex gap-1">
+              <button onClick={()=>togglePause(c.id)} className="p-1.5 rounded-lg" style={{color:paused.has(c.id)?'#22C55E':'#475569',background:'#1E293B'}}
+                onMouseEnter={e=>e.currentTarget.style.color='#94A3B8'}
+                onMouseLeave={e=>e.currentTarget.style.color=paused.has(c.id)?'#22C55E':'#475569'}>
+                <Ic n={paused.has(c.id)?'play':'pause'} s={12}/>
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-4 text-xs" style={{color:'#334155'}}>Drag rows to reorder priority. Click pause to temporarily disable a job.</div>
+    </div>
+  );
+};
+
+/* ─── VIEW: USAGE ────────────────────────────────────────────────── */
+const UsageView=()=>{
+  const totalToday=TOKEN_CLAUDE[TOKEN_CLAUDE.length-1]+TOKEN_DEEP[TOKEN_DEEP.length-1];
+  const weekCost=COST_DATA.reduce((a,b)=>a+b,0);
+  return(
+    <div className="p-4 md:p-6 space-y-4">
+      <h2 className="font-semibold text-sm mb-4">Usage & Cost</h2>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-2">
+        {[
+          {label:'Tokens Today',val:(totalToday/1000).toFixed(1)+'k',color:'#3B82F6'},
+          {label:'Claude Tokens',val:(TOKEN_CLAUDE[TOKEN_CLAUDE.length-1]/1000).toFixed(1)+'k',color:'#3B82F6'},
+          {label:'DeepSeek Tokens',val:(TOKEN_DEEP[TOKEN_DEEP.length-1]/1000).toFixed(1)+'k',color:'#A855F7'},
+          {label:'Week Cost',val:'$'+weekCost.toFixed(2),color:'#22C55E'},
+        ].map((m,i)=>(
+          <div key={i} className="card p-3">
+            <div className="mono text-xl font-bold mb-0.5" style={{color:m.color}}>{m.val}</div>
+            <div className="text-xs" style={{color:'#64748B'}}>{m.label}</div>
+          </div>
+        ))}
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="card p-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-semibold">Token Usage (24h)</span>
+            <div className="flex gap-3">
+              {[['Claude','#3B82F6'],['DeepSeek','#A855F7']].map(([l,c])=>(
+                <div key={l} className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full" style={{background:c}}/>
+                  <span className="mono text-xs" style={{color:'#64748B'}}>{l}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <LineAreaChart labels={TOKEN_LABELS} series={[
+            {label:'Claude',data:TOKEN_CLAUDE,color:'#3B82F6'},
+            {label:'DeepSeek',data:TOKEN_DEEP,color:'#A855F7'},
+          ]} height={180}/>
+        </div>
+        <div className="card p-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-semibold">Daily Cost (USD)</span>
+            <span className="mono text-xs" style={{color:'#22C55E'}}>$29.35 / week</span>
+          </div>
+          <BarChart labels={COST_LABELS} data={COST_DATA} color='#22C55E' height={180}/>
+        </div>
+      </div>
+      <div className="card p-4">
+        <div className="text-sm font-semibold mb-3">Model Breakdown</div>
+        <div className="space-y-2">
+          {[
+            {model:'claude-sonnet-4-6',pct:76,cost:22.31,tokens:'413k',color:'#3B82F6'},
+            {model:'deepseek-r1',pct:18,cost:5.84,tokens:'98k',color:'#A855F7'},
+            {model:'system',pct:6,cost:1.20,tokens:'32k',color:'#475569'},
+          ].map(m=>(
+            <div key={m.model}>
+              <div className="flex justify-between text-xs mb-1">
+                <span className="mono" style={{color:'#CBD5E1'}}>{m.model}</span>
+                <div className="flex gap-3">
+                  <span className="mono" style={{color:'#64748B'}}>{m.tokens}</span>
+                  <span className="mono font-medium" style={{color:m.color}}>${m.cost.toFixed(2)}</span>
+                  <span className="mono" style={{color:'#475569'}}>{m.pct}%</span>
+                </div>
+              </div>
+              <div className="bar-bg"><div className="bar-fill" style={{width:`${m.pct}%`,background:m.color}}/></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ─── VIEW: API MONITOR ──────────────────────────────────────────── */
+const APIView=()=>{
+  const fmtLatency=v=>v===null?'timeout':`${v}ms`;
+  const latColor=v=>v===null?'#EF4444':v<500?'#22C55E':v<2000?'#F59E0B':'#EF4444';
+  return(
+    <div className="p-4 md:p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-semibold text-sm">API Monitor</h2>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5"><Dot s="ok"/><span className="text-xs" style={{color:'#64748B'}}>{API_EPS.filter(a=>a.status==='ok').length} OK</span></div>
+          <div className="flex items-center gap-1.5"><Dot s="warn"/><span className="text-xs" style={{color:'#64748B'}}>{API_EPS.filter(a=>a.status==='warn').length} Warn</span></div>
+          <div className="flex items-center gap-1.5"><Dot s="error"/><span className="text-xs" style={{color:'#64748B'}}>{API_EPS.filter(a=>a.status==='error').length} Error</span></div>
+        </div>
+      </div>
+      <div className="card overflow-hidden">
+        <div className="grid gap-4 px-4 py-2.5 text-xs font-semibold" style={{color:'#475569',borderBottom:'1px solid #1E293B',gridTemplateColumns:'2fr 90px 70px 80px'}}>
+          <span>Endpoint</span><span>Latency</span><span>Status</span><span>Uptime</span>
+        </div>
+        {API_EPS.map(ep=>(
+          <div key={ep.id} className="grid gap-4 px-4 py-4 items-center" style={{borderBottom:'1px solid #0F172A',gridTemplateColumns:'2fr 90px 70px 80px'}}>
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{background:'#1E293B',color:'#64748B'}}>
+                <Ic n="wifi" s={13}/>
+              </div>
+              <span className="mono text-xs font-medium" style={{color:'#CBD5E1'}}>{ep.name}</span>
+            </div>
+            <div>
+              <span className="mono text-sm font-bold" style={{color:latColor(ep.latency)}}>{fmtLatency(ep.latency)}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Dot s={ep.status}/>
+              <span className="mono text-xs" style={{color:statusColor[ep.status]}}>{ep.status}</span>
+            </div>
+            <div>
+              <div className="mono text-xs font-bold mb-1" style={{color:ep.uptime===100?'#22C55E':ep.uptime>99?'#3B82F6':ep.uptime>98?'#F59E0B':'#EF4444'}}>
+                {ep.uptime}%
+              </div>
+              <div className="bar-bg" style={{width:72}}>
+                <div className="bar-fill" style={{width:`${ep.uptime}%`,background:ep.uptime===100?'#22C55E':ep.uptime>99?'#3B82F6':ep.uptime>98?'#F59E0B':'#EF4444'}}/>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      {/* Camofox warning card */}
+      <div className="mt-4 px-4 py-3 rounded-xl flex items-start gap-3"
+        style={{background:'#EF444410',border:'1px solid #EF444430'}}>
+        <Ic n="alertC" s={15} cls="flex-shrink-0 mt-0.5" style={{color:'#EF4444'}}/>
+        <div>
+          <div className="text-sm font-semibold mb-0.5" style={{color:'#EF4444'}}>Camofox Webhook unreachable</div>
+          <div className="text-xs" style={{color:'#94A3B8'}}>POST to <code className="mono" style={{color:'#EF4444'}}>camofox.io/webhook/v2</code> is timing out. Retry #3 failed. Cron job paused automatically.</div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ─── VIEW: LOG STREAM ───────────────────────────────────────────── */
+const LogStreamView=({logs})=>{
+  const [filter,setFilter]=useState('ALL');
+  const [search,setSearch]=useState('');
+  const endRef=useRef(null);
+  useEffect(()=>{endRef.current?.scrollIntoView({behavior:'smooth'});},[logs]);
+  const LEVELS=['ALL','INFO','WARN','ERROR','DEBUG'];
+  const filtered=logs.filter(l=>(filter==='ALL'||l.level===filter)&&(search===''||l.msg.toLowerCase().includes(search.toLowerCase())||l.src.toLowerCase().includes(search.toLowerCase())));
+  return(
+    <div className="p-4 md:p-6 h-full overflow-hidden flex flex-col">
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <h2 className="font-semibold text-sm">Log Stream</h2>
+          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full" style={{background:'#22C55E18',border:'1px solid #22C55E40'}}>
+            <span className="pulse w-1.5 h-1.5 rounded-full" style={{background:'#22C55E'}}/>
+            <span className="mono text-xs" style={{color:'#22C55E'}}>live</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <input type="text" value={search} onChange={e=>setSearch(e.target.value)}
+            placeholder="Search…" className="text-xs" style={{width:140,padding:'5px 10px',borderRadius:6}}/>
+          <div className="flex gap-1">
+            {LEVELS.map(l=>(
+              <button key={l} onClick={()=>setFilter(l)}
+                className="mono text-xs px-2 py-1 rounded"
+                style={{background:filter===l?logColor[l]||'#3B82F6':'#1E293B',
+                  color:filter===l?'#020617':logColor[l]||'#64748B',
+                  border:`1px solid ${filter===l?'transparent':'#334155'}`}}>
+                {l}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="card flex-1 overflow-y-auto p-2 font-mono text-xs" style={{background:'#020617'}}>
+        {filtered.map((l,i)=>(
+          <div key={l.id} className="flex gap-2 px-2 py-1.5 rounded log-in hover:bg-white hover:bg-opacity-5"
+            style={{background:i===filtered.length-1?logBg[l.level]:'transparent'}}>
+            <span style={{color:'#334155'}}>{fmtTs(l.ts)}</span>
+            <span className="font-bold w-12 flex-shrink-0" style={{color:logColor[l.level]}}>{l.level}</span>
+            <span className="px-1.5 py-0 rounded flex-shrink-0" style={{color:'#475569',background:'#1E293B'}}>{l.src}</span>
+            <span style={{color:'#94A3B8'}} className="flex-1">{l.msg}</span>
+          </div>
+        ))}
+        <div ref={endRef}/>
+      </div>
+      <div className="mt-1 mono text-xs" style={{color:'#334155'}}>{filtered.length} entries{search||filter!=='ALL'?' (filtered)':''}</div>
+    </div>
+  );
+};
+
+/* ─── APP ────────────────────────────────────────────────────────── */
+const App=()=>{
+  const [view,setView]=useState('overview');
+  const [collapsed,setCollapsed]=useState(false);
+  const [chatOpen,setChatOpen]=useState(true);
+  const [tasks,setTasks]=useState(TASKS);
+  const [contacts,setContacts]=useState(CRM);
+  const [crons,setCrons]=useState(CRONS);
+  const [logs,setLogs]=useState(INIT_LOGS);
+  const [chatMsgs,setChatMsgs]=useState(INIT_CHAT);
+  const [time,setTime]=useState(new Date());
+
+  useEffect(()=>{
+    const t=setInterval(()=>setTime(new Date()),1000);
+    return()=>clearInterval(t);
+  },[]);
+
+  useEffect(()=>{
+    const t=setInterval(()=>{
+      setLogs(l=>[...l,genLog()].slice(-500));
+    },9000);
+    return()=>clearInterval(t);
+  },[]);
+
+  const renderView=()=>{
+    switch(view){
+      case'overview':return<OverviewView tasks={tasks} logs={logs} time={time}/>;
+      case'tasks':return<TaskBoardView tasks={tasks} setTasks={setTasks}/>;
+      case'crm':return<CRMView contacts={contacts} setContacts={setContacts}/>;
+      case'cron':return<CronView crons={crons} setCrons={setCrons}/>;
+      case'usage':return<UsageView/>;
+      case'api':return<APIView/>;
+      case'logs':return<LogStreamView logs={logs}/>;
+      default:return null;
+    }
+  };
+
+  return(
+    <div className="flex h-screen overflow-hidden" style={{background:'#020617'}}>
+      <Sidebar view={view} setView={setView} collapsed={collapsed} setCollapsed={setCollapsed}
+        onChat={()=>setChatOpen(o=>!o)}/>
+      <div className="flex flex-col flex-1 overflow-hidden main-area"
+        style={{paddingLeft:0,paddingBottom:0,transition:'all .22s ease'}}>
+        <TopBar time={time} view={view} onMenuToggle={()=>setCollapsed(c=>!c)}
+          onChat={()=>setChatOpen(o=>!o)}/>
+        <main className="flex-1 overflow-y-auto overflow-x-hidden" style={{background:'#020617'}}>
+          {renderView()}
+        </main>
+      </div>
+      {chatOpen&&(
+        <ChatPanel open={chatOpen} onClose={()=>setChatOpen(false)}
+          messages={chatMsgs} setMessages={setChatMsgs}/>
+      )}
+      <BottomNav view={view} setView={setView} onChat={()=>setChatOpen(o=>!o)}/>
+    </div>
+  );
+};
+
+const root=ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App/>);
+</script>
+</body>
+</html>
