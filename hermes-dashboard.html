@@ -4,36 +4,68 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hermes — Agent Control</title>
-  <!-- UI UX Pro Max: Dark OLED + Financial Dashboard · Fira Code + Fira Sans -->
+  <!-- UI UX Pro Max: Cyberpunk Dark · Glassmorphism · Neon Accents -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
   <style>
+    :root{
+      --cyan:#06B6D4;--blue:#3B82F6;--indigo:#6366F1;--green:#22C55E;
+      --amber:#F59E0B;--red:#EF4444;--purple:#A855F7;
+      --t1:#F1F5F9;--t2:#94A3B8;--t3:#475569;--t4:#1E3A5F;
+      --bd:rgba(255,255,255,.08);--surface:rgba(255,255,255,.03);
+      --ease:cubic-bezier(.16,1,.3,1);
+    }
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;overflow:hidden}
-    body{background:#03071a;color:#E2E8F0;font-family:'Fira Sans',sans-serif;font-size:14px;line-height:1.5}
+    html,body,#root{height:100%;overflow:hidden}
+    body{
+      background:#020616;color:var(--t1);
+      font-family:'Inter','Fira Sans',sans-serif;font-size:14px;line-height:1.5;
+    }
+
+    /* ── Animated grid background ── */
+    #root::before{
+      content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+      background-image:
+        linear-gradient(rgba(6,182,212,.035) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(6,182,212,.035) 1px,transparent 1px);
+      background-size:48px 48px;
+      mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 30%,transparent 100%);
+    }
+    /* ── Ambient color blobs ── */
+    #root::after{
+      content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+      background:
+        radial-gradient(ellipse 700px 500px at 10% 15%,rgba(59,130,246,.055) 0%,transparent 70%),
+        radial-gradient(ellipse 500px 400px at 88% 78%,rgba(99,102,241,.05) 0%,transparent 70%),
+        radial-gradient(ellipse 350px 350px at 55% 45%,rgba(6,182,212,.03) 0%,transparent 70%);
+    }
+    .flex,.flex-col,.grid{position:relative;z-index:1}
 
     /* ── Scrollbar ── */
-    ::-webkit-scrollbar{width:4px;height:4px}
+    ::-webkit-scrollbar{width:3px;height:3px}
     ::-webkit-scrollbar-track{background:transparent}
-    ::-webkit-scrollbar-thumb{background:#1E3A5F;border-radius:4px}
-    ::-webkit-scrollbar-thumb:hover{background:#2D5A8F}
+    ::-webkit-scrollbar-thumb{background:rgba(6,182,212,.25);border-radius:4px}
+    ::-webkit-scrollbar-thumb:hover{background:rgba(6,182,212,.55)}
 
     /* ── Keyframes ── */
-    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-    @keyframes ringPulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.5)}70%{box-shadow:0 0 0 6px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
-    @keyframes ringErr{0%{box-shadow:0 0 0 0 rgba(239,68,68,.5)}70%{box-shadow:0 0 0 6px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}
-    @keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
-    @keyframes fadeSlideIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+    @keyframes ringPulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.6)}70%{box-shadow:0 0 0 7px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+    @keyframes ringErr{0%{box-shadow:0 0 0 0 rgba(239,68,68,.6)}70%{box-shadow:0 0 0 7px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}
+    @keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-7px)}}
+    @keyframes fadeSlideIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
     @keyframes slideRight{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
     @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-    @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
-    @keyframes runningBorder{0%,100%{box-shadow:0 0 0 1px rgba(59,130,246,.3),0 0 12px rgba(59,130,246,.15)}50%{box-shadow:0 0 0 1px rgba(59,130,246,.7),0 0 20px rgba(59,130,246,.3)}}
+    @keyframes runningBorder{
+      0%,100%{box-shadow:0 0 0 1px rgba(59,130,246,.3),0 0 14px rgba(59,130,246,.12)}
+      50%{box-shadow:0 0 0 1px rgba(59,130,246,.9),0 0 24px rgba(59,130,246,.35)}
+    }
+    @keyframes cyberScan{0%{transform:translateY(-100%)}100%{transform:translateY(100vh)}}
 
     .pulse{animation:pulse 2s ease-in-out infinite}
     .ring-ok{animation:ringPulse 2.5s ease-in-out infinite}
@@ -41,69 +73,89 @@
     .b1{animation:bounce 1.4s ease-in-out infinite}
     .b2{animation:bounce 1.4s ease-in-out .2s infinite}
     .b3{animation:bounce 1.4s ease-in-out .4s infinite}
-    .log-in{animation:fadeSlideIn .3s ease}
-    .chat-enter{animation:slideRight .22s cubic-bezier(.16,1,.3,1)}
+    .log-in{animation:fadeSlideIn .28s var(--ease)}
+    .chat-enter{animation:slideRight .22s var(--ease)}
     .task-running{animation:runningBorder 2s ease-in-out infinite}
 
-    /* ── Cards ── */
+    /* ── Glassmorphism cards ── */
     .card{
-      background:linear-gradient(145deg,rgba(15,23,42,0.95) 0%,rgba(10,18,35,0.9) 100%);
-      border:1px solid rgba(59,130,246,0.1);
-      border-radius:14px;
-      box-shadow:0 4px 24px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.04);
+      background:rgba(255,255,255,.03);
+      backdrop-filter:blur(24px);
+      -webkit-backdrop-filter:blur(24px);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:16px;
+      box-shadow:0 8px 32px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.07);
     }
     .card-sm{
-      background:rgba(15,23,42,0.8);
-      border:1px solid rgba(255,255,255,0.06);
-      border-radius:10px;
-      transition:transform .15s ease,box-shadow .15s ease;
+      background:rgba(255,255,255,.03);
+      backdrop-filter:blur(16px);
+      -webkit-backdrop-filter:blur(16px);
+      border:1px solid rgba(255,255,255,.07);
+      border-radius:12px;
+      transition:transform .2s var(--ease),box-shadow .2s ease,border-color .2s ease;
     }
-    .card-sm:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(0,0,0,.5)}
+    .card-sm:hover{
+      transform:translateY(-2px);
+      border-color:rgba(6,182,212,.2);
+      box-shadow:0 14px 40px rgba(0,0,0,.55),0 0 0 1px rgba(6,182,212,.12);
+    }
 
-    /* ── Metric card top-border accent ── */
+    /* ── Metric card ── */
     .metric-card{position:relative;overflow:hidden}
-    .metric-card::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:var(--accent-line,linear-gradient(90deg,transparent,#3B82F6,transparent))}
+    .metric-card::before{
+      content:'';position:absolute;top:0;left:0;right:0;height:1px;
+      background:var(--accent-line,linear-gradient(90deg,transparent,rgba(59,130,246,.7),transparent));
+      z-index:2;
+    }
+    .metric-card::after{
+      content:'';position:absolute;inset:0;pointer-events:none;
+      background:radial-gradient(ellipse 90% 55% at 50% 0%,var(--accent-glow,rgba(59,130,246,.07)) 0%,transparent 70%);
+    }
 
     /* ── Sidebar ── */
-    .sidebar{width:230px;transition:width .22s cubic-bezier(.4,0,.2,1);flex-shrink:0;overflow:hidden}
+    .sidebar{width:228px;transition:width .22s cubic-bezier(.4,0,.2,1);flex-shrink:0;overflow:hidden}
     .sidebar.col{width:56px}
     .nav-item{
-      display:flex;align-items:center;gap:10px;width:100%;border-radius:10px;
-      font-size:13px;font-weight:500;padding:9px 12px;cursor:pointer;border:none;
-      transition:all .15s ease;color:#4B6A8A;background:transparent;min-height:44px;
-      position:relative;text-align:left;font-family:'Fira Sans',sans-serif;
+      display:flex;align-items:center;gap:10px;width:100%;
+      border-radius:10px;font-size:13px;font-weight:500;
+      padding:9px 12px;cursor:pointer;border:none;
+      transition:all .18s var(--ease);color:rgba(148,163,184,.45);
+      background:transparent;min-height:44px;
+      position:relative;text-align:left;font-family:'Inter','Fira Sans',sans-serif;
     }
-    .nav-item:hover{color:#94A3B8;background:rgba(255,255,255,.04)}
+    .nav-item:hover{color:rgba(148,163,184,.85);background:rgba(255,255,255,.04)}
     .nav-item.active{
-      color:#F1F5F9;
-      background:linear-gradient(90deg,rgba(59,130,246,.18) 0%,rgba(59,130,246,.04) 100%);
-      border-left:2px solid #3B82F6;
+      color:#67E8F9;
+      background:linear-gradient(90deg,rgba(6,182,212,.14) 0%,rgba(6,182,212,.03) 100%);
+      border-left:2px solid #06B6D4;
       padding-left:10px;
     }
     .nav-item.active::before{
       content:'';position:absolute;right:10px;top:50%;transform:translateY(-50%);
-      width:6px;height:6px;border-radius:50%;background:#3B82F6;
-      box-shadow:0 0 8px #3B82F6;
+      width:5px;height:5px;border-radius:50%;background:#06B6D4;
+      box-shadow:0 0 10px #06B6D4,0 0 22px rgba(6,182,212,.55);
     }
     .nav-icon-only{padding:0;justify-content:center;border-left:none!important;padding-left:0!important}
-    .nav-icon-only.active{border-left:2px solid #3B82F6!important;border-radius:0 10px 10px 0;padding-right:0}
+    .nav-icon-only.active{border-left:2px solid #06B6D4!important;border-radius:0 10px 10px 0}
 
     /* ── Tooltip ── */
     .tip-wrap{position:relative}
     .tip-wrap .tip{
       position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);
-      background:#1E3A5F;color:#E2E8F0;font-size:11px;white-space:nowrap;
-      padding:4px 10px;border-radius:6px;border:1px solid rgba(59,130,246,.3);
+      background:rgba(6,182,212,.12);backdrop-filter:blur(20px);
+      color:#E2E8F0;font-size:11px;white-space:nowrap;
+      padding:4px 10px;border-radius:6px;
+      border:1px solid rgba(6,182,212,.25);
       opacity:0;pointer-events:none;transition:opacity .12s;z-index:100;
-      box-shadow:0 4px 16px rgba(0,0,0,.5);
+      box-shadow:0 4px 16px rgba(0,0,0,.6),0 0 20px rgba(6,182,212,.08);
     }
     .tip-wrap:hover .tip{opacity:1}
 
-    /* ── Dropzone ── */
+    /* ── Drop zone ── */
     .drop-zone{
-      border:1.5px dashed rgba(59,130,246,.6)!important;
-      background:rgba(59,130,246,.05)!important;
-      box-shadow:inset 0 0 20px rgba(59,130,246,.05)!important;
+      border:1.5px dashed rgba(6,182,212,.55)!important;
+      background:rgba(6,182,212,.04)!important;
+      box-shadow:inset 0 0 24px rgba(6,182,212,.05)!important;
     }
 
     /* ── Kanban ── */
@@ -111,36 +163,44 @@
     .k-col{scroll-snap-align:start;min-width:240px;max-width:240px;flex-shrink:0}
     @media(min-width:769px){.k-col{min-width:200px;max-width:none;flex:1}}
 
-    /* ── Bars ── */
-    .bar-track{height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
-    .bar-fill{height:100%;border-radius:3px;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+    /* ── Progress bars ── */
+    .bar-track{height:4px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden}
+    .bar-fill{height:100%;border-radius:4px;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
 
     /* ── Mono / Tags ── */
     code,pre,.mono{font-family:'Fira Code',monospace}
     .tag{
       display:inline-flex;align-items:center;gap:3px;
-      padding:2px 8px;border-radius:5px;font-size:10px;font-weight:600;
-      font-family:'Fira Code',monospace;letter-spacing:.02em;
+      padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;
+      font-family:'Fira Code',monospace;letter-spacing:.03em;
     }
 
     /* ── Inputs ── */
     input[type=text],textarea{
-      background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);
-      border-radius:8px;color:#E2E8F0;font-family:'Fira Sans',sans-serif;
+      background:rgba(255,255,255,.04);
+      backdrop-filter:blur(12px);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:8px;color:#E2E8F0;
+      font-family:'Inter','Fira Sans',sans-serif;
       font-size:13px;padding:8px 12px;outline:none;
       transition:border-color .15s,box-shadow .15s;
     }
     input[type=text]:focus,textarea:focus{
-      border-color:rgba(59,130,246,.6);
-      box-shadow:0 0 0 3px rgba(59,130,246,.12);
+      border-color:rgba(6,182,212,.5);
+      box-shadow:0 0 0 3px rgba(6,182,212,.1),0 0 20px rgba(6,182,212,.08);
     }
-    button{cursor:pointer;transition:all .15s ease;font-family:'Fira Sans',sans-serif;border:none;outline:none}
+    button{cursor:pointer;transition:all .15s var(--ease);font-family:'Inter','Fira Sans',sans-serif;border:none;outline:none}
 
     /* ── Glows ── */
-    .glow-blue{text-shadow:0 0 20px rgba(59,130,246,.5)}
-    .glow-green{text-shadow:0 0 20px rgba(34,197,94,.5)}
-    .glow-red{text-shadow:0 0 20px rgba(239,68,68,.5)}
-    .glow-amber{text-shadow:0 0 20px rgba(245,158,11,.5)}
+    .glow-cyan{text-shadow:0 0 18px rgba(6,182,212,.8),0 0 36px rgba(6,182,212,.35)}
+    .glow-blue{text-shadow:0 0 18px rgba(59,130,246,.8),0 0 36px rgba(59,130,246,.35)}
+    .glow-green{text-shadow:0 0 18px rgba(34,197,94,.8),0 0 36px rgba(34,197,94,.35)}
+    .glow-red{text-shadow:0 0 18px rgba(239,68,68,.8)}
+    .glow-amber{text-shadow:0 0 18px rgba(245,158,11,.8)}
+    .glow-purple{text-shadow:0 0 18px rgba(168,85,247,.8)}
+
+    /* ── Neon number ── */
+    .neon-num{font-family:'Fira Code',monospace;font-weight:700;letter-spacing:-.02em}
 
     /* ── Mobile ── */
     @media(max-width:768px){
@@ -152,17 +212,17 @@
         bottom:64px!important;top:auto!important;
         width:100%!important;height:74vh!important;
         border-radius:20px 20px 0 0!important;
-        animation:slideUp .22s cubic-bezier(.16,1,.3,1)!important;
+        animation:slideUp .22s var(--ease)!important;
       }
     }
     @media(min-width:769px){.mobile-only{display:none!important}}
 
     /* ── Chat panel ── */
-    .chat-panel{animation:slideRight .22s cubic-bezier(.16,1,.3,1)}
+    .chat-panel{animation:slideRight .22s var(--ease)}
 
     /* ── Gradient text ── */
     .grad-text{
-      background:linear-gradient(135deg,#60A5FA,#818CF8);
+      background:linear-gradient(135deg,#67E8F9 0%,#38BDF8 50%,#818CF8 100%);
       -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
     }
 
@@ -177,6 +237,12 @@
     .dot-wrap{position:relative;display:inline-flex;align-items:center;justify-content:center}
     .dot-inner{width:8px;height:8px;border-radius:50%;position:relative;z-index:1}
     .dot-ring{position:absolute;inset:-3px;border-radius:50%;border:1.5px solid transparent}
+
+    /* ── Cyber header line ── */
+    .cyber-line{
+      position:absolute;bottom:0;left:0;right:0;height:1px;
+      background:linear-gradient(90deg,transparent 0%,rgba(6,182,212,.4) 30%,rgba(59,130,246,.6) 50%,rgba(6,182,212,.4) 70%,transparent 100%);
+    }
   </style>
 </head>
 <body>
@@ -294,8 +360,8 @@ const fmtTime=d=>`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes(
 const fmtTs=d=>`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
 const C={
   ok:'#22C55E',warn:'#F59E0B',error:'#EF4444',disabled:'#475569',
-  HIGH:'#EF4444',MED:'#F59E0B',LOW:'#6366F1',
-  'claude-sonnet-4-6':'#3B82F6','deepseek-r1':'#A855F7',system:'#64748B',
+  HIGH:'#EF4444',MED:'#F59E0B',LOW:'#818CF8',
+  'claude-sonnet-4-6':'#06B6D4','deepseek-r1':'#A855F7',system:'#64748B',
 };
 const modelShort={'claude-sonnet-4-6':'Sonnet','deepseek-r1':'DeepSeek',system:'sys'};
 const stageInfo={
@@ -343,13 +409,13 @@ const LineAreaChart=({labels,series,height=170})=>{
         interaction:{mode:'index',intersect:false},
         plugins:{
           legend:{display:false},
-          tooltip:{backgroundColor:'rgba(15,23,42,.95)',borderColor:'rgba(59,130,246,.2)',borderWidth:1,
+          tooltip:{backgroundColor:'rgba(2,6,22,.95)',borderColor:'rgba(6,182,212,.2)',borderWidth:1,
             titleColor:'#F1F5F9',bodyColor:'#94A3B8',padding:10,cornerRadius:8,
             callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.raw.toLocaleString()}`}}
         },
         scales:{
-          x:{grid:{color:'rgba(255,255,255,.04)',drawBorder:false},ticks:{color:'#334155',font:{size:10,family:'Fira Code'}}},
-          y:{grid:{color:'rgba(255,255,255,.04)',drawBorder:false},ticks:{color:'#334155',font:{size:10,family:'Fira Code'},callback:v=>v>=1000?`${(v/1000).toFixed(0)}k`:v}},
+          x:{grid:{color:'rgba(6,182,212,.04)',drawBorder:false},ticks:{color:'rgba(148,163,184,.3)',font:{size:10,family:'Fira Code'}}},
+          y:{grid:{color:'rgba(6,182,212,.04)',drawBorder:false},ticks:{color:'rgba(148,163,184,.3)',font:{size:10,family:'Fira Code'},callback:v=>v>=1000?`${(v/1000).toFixed(0)}k`:v}},
         }
       }
     });
@@ -370,12 +436,12 @@ const BarChart=({labels,data,color='#3B82F6',height=150})=>{
       options:{
         responsive:true,maintainAspectRatio:false,animation:{duration:700,easing:'easeOutQuart'},
         plugins:{legend:{display:false},
-          tooltip:{backgroundColor:'rgba(15,23,42,.95)',borderColor:'rgba(59,130,246,.2)',borderWidth:1,
+          tooltip:{backgroundColor:'rgba(2,6,22,.95)',borderColor:'rgba(34,197,94,.2)',borderWidth:1,
             titleColor:'#F1F5F9',bodyColor:'#94A3B8',padding:10,cornerRadius:8,
             callbacks:{label:ctx=>`$${ctx.raw.toFixed(2)}`}}},
         scales:{
-          x:{grid:{display:false},ticks:{color:'#334155',font:{size:10,family:'Fira Code'}}},
-          y:{grid:{color:'rgba(255,255,255,.04)',drawBorder:false},ticks:{color:'#334155',font:{size:10,family:'Fira Code'},callback:v=>`$${v}`}},
+          x:{grid:{display:false},ticks:{color:'rgba(148,163,184,.3)',font:{size:10,family:'Fira Code'}}},
+          y:{grid:{color:'rgba(34,197,94,.05)',drawBorder:false},ticks:{color:'rgba(148,163,184,.3)',font:{size:10,family:'Fira Code'},callback:v=>`$${v}`}},
         }
       }
     });
@@ -396,17 +462,25 @@ const NAV=[
 ];
 const Sidebar=({view,setView,col,setCol,onChat})=>(
   <aside className={`sidebar desktop-only flex flex-col h-full ${col?'col':''}`}
-    style={{background:'linear-gradient(180deg,#060e22 0%,#040c1d 100%)',borderRight:'1px solid rgba(255,255,255,.05)'}}>
+    style={{
+      background:'rgba(2,6,22,.97)',
+      backdropFilter:'blur(24px)',
+      borderRight:'1px solid rgba(6,182,212,.08)',
+      boxShadow:'4px 0 40px rgba(0,0,0,.5)',
+    }}>
     {/* Logo */}
-    <div className="flex items-center px-3 py-4 gap-3 flex-shrink-0" style={{minHeight:58,borderBottom:'1px solid rgba(255,255,255,.05)'}}>
+    <div className="flex items-center px-3 py-4 gap-3 flex-shrink-0 relative" style={{minHeight:58,borderBottom:'1px solid rgba(255,255,255,.05)'}}>
       <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-        style={{background:'linear-gradient(135deg,#3B82F6 0%,#6366F1 100%)',boxShadow:'0 0 20px rgba(59,130,246,.35)'}}>
+        style={{
+          background:'linear-gradient(135deg,#06B6D4 0%,#3B82F6 100%)',
+          boxShadow:'0 0 24px rgba(6,182,212,.45),0 0 48px rgba(6,182,212,.15)',
+        }}>
         <Ic n="zap" s={16} cls="text-white"/>
       </div>
       {!col&&(
         <div>
-          <div className="font-mono font-bold text-sm grad-text" style={{letterSpacing:'.14em'}}>HERMES</div>
-          <div className="mono text-xs" style={{color:'#1E3A5F',letterSpacing:'.06em'}}>agent control</div>
+          <div className="font-bold text-sm grad-text" style={{letterSpacing:'.18em',fontFamily:'Fira Code'}}>HERMES</div>
+          <div className="mono text-xs" style={{color:'rgba(6,182,212,.35)',letterSpacing:'.08em'}}>agent control</div>
         </div>
       )}
     </div>
@@ -432,9 +506,9 @@ const Sidebar=({view,setView,col,setCol,onChat})=>(
 
     {/* System health mini */}
     {!col&&(
-      <div className="px-3 py-3 mx-2 mb-2 rounded-xl" style={{background:'rgba(255,255,255,.03)',border:'1px solid rgba(255,255,255,.05)'}}>
+      <div className="px-3 py-3 mx-2 mb-2 rounded-xl" style={{background:'rgba(6,182,212,.04)',border:'1px solid rgba(6,182,212,.1)',backdropFilter:'blur(12px)'}}>
         <div className="flex items-center justify-between mb-2">
-          <span className="mono text-xs" style={{color:'#334155'}}>KVM2 health</span>
+          <span className="mono text-xs" style={{color:'rgba(6,182,212,.5)'}}>KVM2 health</span>
           <div className="flex items-center gap-1.5"><Dot s="ok" ring/><span className="mono text-xs" style={{color:'#22C55E'}}>online</span></div>
         </div>
         {[{l:'RAM',v:40,c:'#22C55E'},{l:'CPU',v:23,c:'#3B82F6'},{l:'Disk',v:61,c:'#F59E0B'}].map(r=>(
@@ -452,10 +526,11 @@ const Sidebar=({view,setView,col,setCol,onChat})=>(
       <div className="tip-wrap">
         <button onClick={onChat}
           className={`flex items-center gap-3 w-full rounded-xl py-2.5 font-semibold text-sm transition-all ${col?'justify-center px-0':'px-3'}`}
-          style={{background:'linear-gradient(135deg,rgba(59,130,246,.2),rgba(99,102,241,.2))',
-            color:'#60A5FA',border:'1px solid rgba(59,130,246,.25)',minHeight:44}}
-          onMouseEnter={e=>e.currentTarget.style.background='linear-gradient(135deg,rgba(59,130,246,.3),rgba(99,102,241,.3))'}
-          onMouseLeave={e=>e.currentTarget.style.background='linear-gradient(135deg,rgba(59,130,246,.2),rgba(99,102,241,.2))'}>
+          style={{background:'linear-gradient(135deg,rgba(6,182,212,.18),rgba(59,130,246,.14))',
+            color:'#67E8F9',border:'1px solid rgba(6,182,212,.3)',minHeight:44,
+            boxShadow:'0 0 20px rgba(6,182,212,.12),inset 0 1px 0 rgba(255,255,255,.06)'}}
+          onMouseEnter={e=>{e.currentTarget.style.background='linear-gradient(135deg,rgba(6,182,212,.28),rgba(59,130,246,.22))';e.currentTarget.style.boxShadow='0 0 28px rgba(6,182,212,.25)'}}
+          onMouseLeave={e=>{e.currentTarget.style.background='linear-gradient(135deg,rgba(6,182,212,.18),rgba(59,130,246,.14))';e.currentTarget.style.boxShadow='0 0 20px rgba(6,182,212,.12),inset 0 1px 0 rgba(255,255,255,.06)'}}>
           <Ic n="chat" s={15}/>{!col&&'Chat Hermes'}
         </button>
         {col&&<span className="tip">Chat Hermes</span>}
@@ -478,14 +553,14 @@ const Sidebar=({view,setView,col,setCol,onChat})=>(
 /* ── BOTTOM NAV ─────────────────────────────────────────────── */
 const BottomNav=({view,setView,onChat})=>(
   <nav className="mobile-only fixed bottom-0 left-0 right-0 z-40 items-end"
-    style={{background:'rgba(6,14,34,.97)',backdropFilter:'blur(20px)',borderTop:'1px solid rgba(255,255,255,.05)',paddingBottom:'env(safe-area-inset-bottom,0)'}}>
+    style={{background:'rgba(2,6,22,.96)',backdropFilter:'blur(24px)',borderTop:'1px solid rgba(6,182,212,.1)',paddingBottom:'env(safe-area-inset-bottom,0)'}}>
     <div className="flex justify-around items-center py-2">
       {NAV.slice(0,5).map(n=>{
         const a=view===n.id;
         return(
           <button key={n.id} onClick={()=>setView(n.id)}
             className="flex flex-col items-center gap-1 px-2 py-1.5 rounded-xl"
-            style={{color:a?'#60A5FA':'#2D4A6A',minWidth:44,minHeight:44}}>
+            style={{color:a?'#67E8F9':'rgba(148,163,184,.35)',minWidth:44,minHeight:44}}>
             <Ic n={n.icon} s={18}/>
             <span style={{fontSize:9,fontFamily:'Fira Code'}}>{n.label.split(' ')[0]}</span>
           </button>
@@ -503,9 +578,11 @@ const BottomNav=({view,setView,onChat})=>(
 const TopBar=({time,view,onToggle,onChat})=>{
   const label=NAV.find(n=>n.id===view)?.label||'';
   return(
-    <header className="flex items-center justify-between flex-shrink-0"
-      style={{height:54,background:'rgba(4,12,29,.9)',backdropFilter:'blur(20px)',
-        borderBottom:'1px solid rgba(255,255,255,.05)',padding:'0 20px',zIndex:30}}>
+    <header className="flex items-center justify-between flex-shrink-0 relative"
+      style={{height:54,background:'rgba(2,6,22,.88)',backdropFilter:'blur(28px)',
+        borderBottom:'1px solid rgba(6,182,212,.1)',padding:'0 20px',zIndex:30,
+        boxShadow:'0 1px 40px rgba(0,0,0,.5)'}}>
+      <div className="cyber-line"/>
       <div className="flex items-center gap-3">
         <button className="desktop-only p-2 rounded-lg" style={{color:'#2D4A6A'}}
           onClick={onToggle}
@@ -514,7 +591,7 @@ const TopBar=({time,view,onToggle,onChat})=>{
           <Ic n="menu" s={15}/>
         </button>
         <div>
-          <div className="font-semibold text-sm" style={{color:'#CBD5E1'}}>{label}</div>
+          <div className="font-semibold text-sm" style={{color:'#CBD5E1',letterSpacing:'.01em'}}>{label}</div>
         </div>
         <div className="flex items-center gap-1.5 px-2 py-1 rounded-full" style={{background:'rgba(34,197,94,.08)',border:'1px solid rgba(34,197,94,.15)'}}>
           <Dot s="ok" pulse/><span className="mono text-xs" style={{color:'#22C55E'}}>online</span>
@@ -527,17 +604,18 @@ const TopBar=({time,view,onToggle,onChat})=>{
           Camofox ERR
         </div>
         {/* Clock */}
-        <div className="mono text-sm font-semibold glow-blue" style={{color:'#60A5FA',letterSpacing:'.06em'}}>{fmtTime(time)}</div>
+        <div className="mono text-sm font-semibold glow-cyan" style={{color:'#67E8F9',letterSpacing:'.08em'}}>{fmtTime(time)}</div>
         {/* Chat btn */}
         <button onClick={onChat} className="desktop-only flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold"
-          style={{background:'rgba(59,130,246,.12)',color:'#60A5FA',border:'1px solid rgba(59,130,246,.2)'}}
-          onMouseEnter={e=>e.currentTarget.style.background='rgba(59,130,246,.2)'}
-          onMouseLeave={e=>e.currentTarget.style.background='rgba(59,130,246,.12)'}>
+          style={{background:'rgba(6,182,212,.1)',color:'#67E8F9',border:'1px solid rgba(6,182,212,.22)',
+            boxShadow:'0 0 16px rgba(6,182,212,.08)'}}
+          onMouseEnter={e=>{e.currentTarget.style.background='rgba(6,182,212,.2)';e.currentTarget.style.boxShadow='0 0 24px rgba(6,182,212,.2)'}}
+          onMouseLeave={e=>{e.currentTarget.style.background='rgba(6,182,212,.1)';e.currentTarget.style.boxShadow='0 0 16px rgba(6,182,212,.08)'}}>
           <Ic n="chat" s={13}/>Chat
         </button>
         {/* Avatar */}
         <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
-          style={{background:'linear-gradient(135deg,#6366F1,#A855F7)',boxShadow:'0 0 16px rgba(99,102,241,.4)',color:'#fff'}}>M</div>
+          style={{background:'linear-gradient(135deg,#06B6D4,#3B82F6)',boxShadow:'0 0 20px rgba(6,182,212,.5),0 0 40px rgba(6,182,212,.2)',color:'#fff'}}>M</div>
       </div>
     </header>
   );
@@ -572,13 +650,16 @@ const ChatPanel=({open,onClose,messages,setMessages})=>{
   if(!open)return null;
   return(
     <div className="chat-panel fixed top-0 right-0 bottom-0 flex flex-col z-50"
-      style={{width:340,background:'linear-gradient(180deg,#060e22 0%,#040c1d 100%)',borderLeft:'1px solid rgba(255,255,255,.05)'}}>
+      style={{width:340,background:'rgba(2,6,22,.97)',backdropFilter:'blur(32px)',
+        borderLeft:'1px solid rgba(6,182,212,.1)',
+        boxShadow:'-8px 0 48px rgba(0,0,0,.6)'}}>
       {/* Header */}
-      <div className="flex items-center justify-between px-4 flex-shrink-0"
-        style={{minHeight:54,borderBottom:'1px solid rgba(255,255,255,.05)'}}>
+      <div className="flex items-center justify-between px-4 flex-shrink-0 relative"
+        style={{minHeight:54,borderBottom:'1px solid rgba(6,182,212,.08)'}}>
+        <div className="cyber-line" style={{bottom:0}}/>
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-            style={{background:'linear-gradient(135deg,#3B82F6,#6366F1)',boxShadow:'0 0 16px rgba(59,130,246,.3)'}}>
+            style={{background:'linear-gradient(135deg,#06B6D4,#3B82F6)',boxShadow:'0 0 20px rgba(6,182,212,.4)'}}>
             <Ic n="bot" s={15} cls="text-white"/>
           </div>
           <div>
@@ -604,8 +685,8 @@ const ChatPanel=({open,onClose,messages,setMessages})=>{
         {messages.map((m,i)=>(
           <div key={i} className={`flex gap-2.5 ${m.role==='user'?'flex-row-reverse':''}`}>
             <div className="w-7 h-7 rounded-xl flex-shrink-0 flex items-center justify-center text-xs font-bold"
-              style={{background:m.role==='user'?'linear-gradient(135deg,#6366F1,#A855F7)':'linear-gradient(135deg,#3B82F6,#22C55E)',
-                boxShadow:`0 0 12px ${m.role==='user'?'rgba(99,102,241,.35)':'rgba(59,130,246,.3)'}`,color:'#fff'}}>
+              style={{background:m.role==='user'?'linear-gradient(135deg,#6366F1,#A855F7)':'linear-gradient(135deg,#06B6D4,#3B82F6)',
+                boxShadow:`0 0 14px ${m.role==='user'?'rgba(99,102,241,.4)':'rgba(6,182,212,.4)'}`,color:'#fff'}}>
               {m.role==='user'?'M':<Ic n="bot" s={12}/>}
             </div>
             <div className="rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed max-w-[78%]"
@@ -619,13 +700,13 @@ const ChatPanel=({open,onClose,messages,setMessages})=>{
         {loading&&(
           <div className="flex gap-2.5">
             <div className="w-7 h-7 rounded-xl flex items-center justify-center"
-              style={{background:'linear-gradient(135deg,#3B82F6,#22C55E)',boxShadow:'0 0 12px rgba(59,130,246,.3)'}}>
+              style={{background:'linear-gradient(135deg,#06B6D4,#3B82F6)',boxShadow:'0 0 16px rgba(6,182,212,.4)'}}>
               <Ic n="bot" s={12} cls="text-white"/>
             </div>
-            <div className="flex items-center gap-1.5 px-4 py-3 rounded-2xl" style={{background:'rgba(15,23,42,.8)',border:'1px solid rgba(255,255,255,.06)'}}>
-              <span className="b1 rounded-full" style={{width:6,height:6,background:'#3B82F6',display:'inline-block'}}/>
-              <span className="b2 rounded-full" style={{width:6,height:6,background:'#3B82F6',display:'inline-block'}}/>
-              <span className="b3 rounded-full" style={{width:6,height:6,background:'#3B82F6',display:'inline-block'}}/>
+            <div className="flex items-center gap-1.5 px-4 py-3 rounded-2xl" style={{background:'rgba(6,182,212,.05)',border:'1px solid rgba(6,182,212,.12)'}}>
+              <span className="b1 rounded-full" style={{width:6,height:6,background:'#06B6D4',display:'inline-block',boxShadow:'0 0 8px #06B6D4'}}/>
+              <span className="b2 rounded-full" style={{width:6,height:6,background:'#06B6D4',display:'inline-block',boxShadow:'0 0 8px #06B6D4'}}/>
+              <span className="b3 rounded-full" style={{width:6,height:6,background:'#06B6D4',display:'inline-block',boxShadow:'0 0 8px #06B6D4'}}/>
             </div>
           </div>
         )}
@@ -639,9 +720,9 @@ const ChatPanel=({open,onClose,messages,setMessages})=>{
             placeholder="Ask Hermes anything…" className="flex-1 text-sm"/>
           <button onClick={send} disabled={loading||!input.trim()}
             className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{background:input.trim()&&!loading?'linear-gradient(135deg,#3B82F6,#6366F1)':'rgba(255,255,255,.06)',
+            style={{background:input.trim()&&!loading?'linear-gradient(135deg,#06B6D4,#3B82F6)':'rgba(255,255,255,.06)',
               color:input.trim()&&!loading?'#fff':'#334155',
-              boxShadow:input.trim()&&!loading?'0 0 16px rgba(59,130,246,.4)':'none',
+              boxShadow:input.trim()&&!loading?'0 0 20px rgba(6,182,212,.45),0 0 40px rgba(6,182,212,.2)':'none',
               opacity:loading?.6:1}}>
             <Ic n="send" s={14}/>
           </button>
@@ -658,10 +739,10 @@ const OverviewView=({tasks,logs,time})=>{
   const done=tasks.filter(t=>t.status==='done').length;
   const recentLogs=logs.slice(-5).reverse();
   const metrics=[
-    {label:'Active Tasks',val:running,icon:'zap',color:'#3B82F6',sub:'running now',glow:'rgba(59,130,246,.4)'},
-    {label:'Completed',val:done,icon:'checkC',color:'#22C55E',sub:'all time',glow:'rgba(34,197,94,.4)'},
-    {label:'Failed',val:failed,icon:'xC',color:'#EF4444',sub:'need attention',glow:'rgba(239,68,68,.4)'},
-    {label:'Cost Today',val:'$4.90',icon:'dollar',color:'#F59E0B',sub:'USD · 53k tokens',glow:'rgba(245,158,11,.4)'},
+    {label:'Active Tasks',val:running,icon:'zap',color:'#06B6D4',sub:'running now',accentGlow:'rgba(6,182,212,.08)',glowStr:'rgba(6,182,212,.9)'},
+    {label:'Completed',val:done,icon:'checkC',color:'#22C55E',sub:'all time',accentGlow:'rgba(34,197,94,.07)',glowStr:'rgba(34,197,94,.9)'},
+    {label:'Failed',val:failed,icon:'xC',color:'#EF4444',sub:'need attention',accentGlow:'rgba(239,68,68,.07)',glowStr:'rgba(239,68,68,.9)'},
+    {label:'Cost Today',val:'$4.90',icon:'dollar',color:'#F59E0B',sub:'USD · 53k tokens',accentGlow:'rgba(245,158,11,.07)',glowStr:'rgba(245,158,11,.9)'},
   ];
   return(
     <div className="p-5 space-y-5 overflow-y-auto h-full">
@@ -669,18 +750,22 @@ const OverviewView=({tasks,logs,time})=>{
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {metrics.map((m,i)=>(
           <div key={i} className="card metric-card p-5"
-            style={{'--accent-line':`linear-gradient(90deg,transparent,${m.color}80,transparent)`}}>
+            style={{
+              '--accent-line':`linear-gradient(90deg,transparent,${m.color},transparent)`,
+              '--accent-glow':m.accentGlow,
+            }}>
             <div className="flex items-center justify-between mb-4">
               <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-                style={{background:`linear-gradient(135deg,${m.color}22,${m.color}11)`,
-                  border:`1px solid ${m.color}30`,color:m.color}}>
+                style={{background:`${m.color}15`,
+                  border:`1px solid ${m.color}35`,color:m.color,
+                  boxShadow:`0 0 16px ${m.color}25`}}>
                 <Ic n={m.icon} s={16}/>
               </div>
-              <div className="w-2 h-2 rounded-full" style={{background:m.color,boxShadow:`0 0 8px ${m.color}`}}/>
+              <div className="w-2 h-2 rounded-full" style={{background:m.color,boxShadow:`0 0 10px ${m.color},0 0 20px ${m.color}60`}}/>
             </div>
-            <div className="mono text-3xl font-bold mb-1" style={{color:m.color,textShadow:`0 0 24px ${m.glow}`}}>{m.val}</div>
+            <div className="neon-num text-4xl mb-1" style={{color:m.color,textShadow:`0 0 20px ${m.glowStr},0 0 40px ${m.color}50`}}>{m.val}</div>
             <div className="font-semibold text-xs mb-0.5" style={{color:'#CBD5E1'}}>{m.label}</div>
-            <div className="mono text-xs" style={{color:'#334155'}}>{m.sub}</div>
+            <div className="mono text-xs" style={{color:'rgba(148,163,184,.35)'}}>{m.sub}</div>
           </div>
         ))}
       </div>
@@ -894,7 +979,7 @@ const CRMView=({contacts,setContacts})=>{
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-semibold text-sm">CRM Pipeline</h2>
         <div className="flex gap-4">
-          {[['Pipeline','#3B82F6',pipeline],['Closed','#22C55E',closed]].map(([l,c,v])=>(
+          {[['Pipeline','#06B6D4',pipeline],['Closed','#22C55E',closed]].map(([l,c,v])=>(
             <div key={l} className="text-right">
               <div className="mono text-xs" style={{color:'#334155'}}>{l}</div>
               <div className="mono text-sm font-bold" style={{color:c,textShadow:`0 0 16px ${c}60`}}>${v.toLocaleString()}</div>
@@ -1046,15 +1131,18 @@ const UsageView=()=>{
       <h2 className="font-semibold text-sm">Usage & Cost</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          {l:'Tokens Today',v:`${(total/1000).toFixed(1)}k`,c:'#3B82F6'},
+          {l:'Tokens Today',v:`${(total/1000).toFixed(1)}k`,c:'#06B6D4'},
           {l:'Claude',v:`${(TOKEN_CLAUDE.at(-1)/1000).toFixed(1)}k`,c:'#3B82F6'},
           {l:'DeepSeek',v:`${(TOKEN_DEEP.at(-1)/1000).toFixed(1)}k`,c:'#A855F7'},
           {l:'Week Cost',v:`$${weekCost.toFixed(2)}`,c:'#22C55E'},
         ].map((m,i)=>(
           <div key={i} className="card metric-card p-4"
-            style={{'--accent-line':`linear-gradient(90deg,transparent,${m.c}80,transparent)`}}>
-            <div className="mono text-2xl font-bold mb-1" style={{color:m.c,textShadow:`0 0 20px ${m.c}60`}}>{m.v}</div>
-            <div className="text-xs" style={{color:'#334155'}}>{m.l}</div>
+            style={{
+              '--accent-line':`linear-gradient(90deg,transparent,${m.c},transparent)`,
+              '--accent-glow':`${m.c}10`,
+            }}>
+            <div className="neon-num text-3xl mb-1" style={{color:m.c,textShadow:`0 0 20px ${m.c},0 0 40px ${m.c}60`}}>{m.v}</div>
+            <div className="text-xs" style={{color:'rgba(148,163,184,.5)'}}>{m.l}</div>
           </div>
         ))}
       </div>
@@ -1063,7 +1151,7 @@ const UsageView=()=>{
           <div className="flex items-center justify-between mb-4">
             <span className="font-semibold text-sm">Token Usage (24h)</span>
             <div className="flex gap-3">
-              {[['Claude','#3B82F6'],['DeepSeek','#A855F7']].map(([l,c])=>(
+              {[['Claude','#06B6D4'],['DeepSeek','#A855F7']].map(([l,c])=>(
                 <div key={l} className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full" style={{background:c,boxShadow:`0 0 6px ${c}`}}/>
                   <span className="mono text-xs" style={{color:'#334155'}}>{l}</span>
@@ -1071,7 +1159,7 @@ const UsageView=()=>{
               ))}
             </div>
           </div>
-          <LineAreaChart labels={TOKEN_LABELS} series={[{label:'Claude',data:TOKEN_CLAUDE,color:'#3B82F6'},{label:'DeepSeek',data:TOKEN_DEEP,color:'#A855F7'}]}/>
+          <LineAreaChart labels={TOKEN_LABELS} series={[{label:'Claude',data:TOKEN_CLAUDE,color:'#06B6D4'},{label:'DeepSeek',data:TOKEN_DEEP,color:'#A855F7'}]}/>
         </div>
         <div className="card p-5">
           <div className="flex items-center justify-between mb-4">
@@ -1085,7 +1173,7 @@ const UsageView=()=>{
         <div className="font-semibold text-sm mb-4">Model Breakdown</div>
         <div className="space-y-3">
           {[
-            {model:'claude-sonnet-4-6',pct:76,cost:22.31,tokens:'413k',color:'#3B82F6'},
+            {model:'claude-sonnet-4-6',pct:76,cost:22.31,tokens:'413k',color:'#06B6D4'},
             {model:'deepseek-r1',pct:18,cost:5.84,tokens:'98k',color:'#A855F7'},
             {model:'system',pct:6,cost:1.20,tokens:'32k',color:'#334155'},
           ].map(m=>(
@@ -1202,10 +1290,11 @@ const LogStreamView=({logs})=>{
               <button key={l} onClick={()=>setFilter(l)}
                 className="mono text-xs px-2.5 py-1.5 rounded-lg transition-all"
                 style={{
-                  background:filter===l?(logColor[l]||'#3B82F6'):'rgba(255,255,255,.04)',
-                  color:filter===l?'#03071a':(logColor[l]||'#334155'),
+                  background:filter===l?(logColor[l]||'#06B6D4'):'rgba(255,255,255,.04)',
+                  color:filter===l?'#020616':(logColor[l]||'rgba(148,163,184,.4)'),
                   border:`1px solid ${filter===l?'transparent':'rgba(255,255,255,.06)'}`,
                   fontWeight:filter===l?700:400,
+                  boxShadow:filter===l?`0 0 12px ${logColor[l]||'#06B6D4'}60`:'none',
                 }}>
                 {l}
               </button>
@@ -1213,7 +1302,7 @@ const LogStreamView=({logs})=>{
           </div>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto rounded-2xl p-2" style={{background:'rgba(3,7,26,.8)',border:'1px solid rgba(255,255,255,.04)'}}>
+      <div className="flex-1 overflow-y-auto rounded-2xl p-2" style={{background:'rgba(2,6,22,.85)',backdropFilter:'blur(12px)',border:'1px solid rgba(6,182,212,.08)'}}>
         {filtered.map((l,i)=>(
           <div key={l.id} className="flex gap-3 px-3 py-1.5 rounded-lg log-in"
             style={{background:logBg[l.level],fontFamily:'Fira Code',fontSize:11}}>
@@ -1258,11 +1347,11 @@ const App=()=>{
   };
 
   return(
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden" style={{background:'#020616'}}>
       <Sidebar view={view} setView={v=>{setView(v);}} col={col} setCol={setCol} onChat={()=>setChatOpen(o=>!o)}/>
       <div className="flex flex-col flex-1 overflow-hidden main-area">
         <TopBar time={time} view={view} onToggle={()=>setCol(c=>!c)} onChat={()=>setChatOpen(o=>!o)}/>
-        <main className="flex-1 overflow-hidden" style={{background:'#03071a'}}>
+        <main className="flex-1 overflow-hidden" style={{background:'transparent'}}>
           {renderView()}
         </main>
       </div>
